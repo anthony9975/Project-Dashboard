@@ -97,6 +97,37 @@ This doesn't need to be built now, but the groundwork (the config-driven field m
 
 This is a single-user, local-first tool — run on one's own machine, no login system, no multi-user concerns. No auth layer or permissions needed as a result.
 
+## Visual style
+
+**Direction:** a light drafting/blueprint aesthetic — grid paper, hairline strokes, and small corner registration marks (echoing PCB fiducials and technical drawing conventions), on a pale cool-white background. Technical because it borrows the vernacular of the tools actually used (KiCad, GitHub), not because it's dark.
+
+**Palette:**
+
+| Name | Hex | Use |
+|---|---|---|
+| Paper | `#F7F8FA` | Page background |
+| Ink | `#1E2733` | Primary text |
+| Line | `#DCE1E8` | Grid lines, hairline borders |
+| Circuit blue | `#2955C5` | Primary accent, "active" status |
+| Slate | `#6B7684` | Secondary text, "idea" status |
+| Signal amber | `#B96E1E` | "planned" status |
+| Moss | `#2F7D58` | "completed" status |
+| Clay | `#8B6F4E` | "archived" status |
+
+Three structural neutrals (Paper, Ink, Line) plus one color per project status, in lifecycle order: **idea (Slate) → planned (Amber) → active (Circuit blue) → completed (Moss) → archived (Clay)**. Status tags and any status-ordered UI (filter tabs, legends) should always list stages in this order, not alphabetically or by color.
+
+**Type:**
+- Headings — Space Grotesk (weight 500), used sparingly
+- Body text — IBM Plex Sans
+- Metadata (status tags, dates, categories) — IBM Plex Mono
+
+**Layout:**
+- Faint grid-paper background (24px grid, very low-opacity lines) behind page content
+- Cards with 0.5px hairline borders in Line, 8px corner radius — no shadows
+- Small `+` registration marks at card corners as the one signature/decorative touch
+
+**Note for implementation:** keep the grid opacity low — it should read as texture, not pattern. If it ever feels busy, dial that down before touching the palette or corner marks.
+
 ## Tentative timeline
 
 1. Determine the overall architecture of the project *(done — this document)*
