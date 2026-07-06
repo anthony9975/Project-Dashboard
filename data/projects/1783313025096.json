@@ -1,0 +1,29 @@
+{
+  "id": "1783313025096",
+  "title": "Test",
+  "note": "Test idea",
+  "status": "completed",
+  "category": "sdsfd",
+  "description": "sdfsdf",
+  "vision": "sdfsdf",
+  "roadmap": [
+    "sdfsdf"
+  ],
+  "components": [
+    "sdfsdfsd"
+  ],
+  "location": "sdfsdf",
+  "todos": [
+    "sdfsdfsd"
+  ],
+  "research": [
+    "sdfsdfs"
+  ],
+  "archivedReason": "",
+  "blockers": "",
+  "timeline": [],
+  "insights": "",
+  "nextSteps": "",
+  "createdAt": "2026-07-06T04:43:45.096Z",
+  "updatedAt": "2026-07-06T04:44:13.015Z"
+}
