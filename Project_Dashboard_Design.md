@@ -41,18 +41,22 @@ Four layers, each layer only aware of the one directly below it:
 
 **Why this matters:** the repository layer is the seam that lets storage be swapped later (e.g. JSON → SQLite, if the project graph outgrows flat files) without rewriting the UI or API.
 
-### One unified `Project` entity, not four separate schemas
+### One unified `Project` entity, not five separate schemas
 
-Rather than each page (Idea / Tracker / Archive / Completed) having its own data shape, every project is a single object that moves through a `status` field: `idea → active → archived / completed`, with `archived → active` (unarchive) as a valid transition too. Moving a project between stages becomes a one-field update, not a data migration.
+Rather than each page (Idea / Planned / Active / Archive / Completed) having its own data shape, every project is a single object that moves through a `status` field: `idea → planned → active → archived / completed`, with `archived → active` (unarchive) as a valid transition too. Moving a project between stages becomes a one-field update, not a data migration.
+
+The **Idea** stage is intentionally near-frictionless — just a name and a one-line note, so capturing a raw idea takes no real thought. Moving to **Planned** is the point where a project gets a real description, a vision, and an initial approach; this is the stage where you're actually committing some thought to it. **Active**, **Archived**, and **Completed** stay as before.
 
 Rough shape:
 
 ```
 {
-  id, title, status: "idea" | "active" | "archived" | "completed",
-  category, description, vision,
-  links: [{ toId, relationship }],
-  components: [...], roadmap: [...],
+  id, title, status: "idea" | "planned" | "active" | "archived" | "completed",
+  category, links: [{ toId, relationship }],   // optional even at "idea"
+  description,   // starts as a one-liner, expanded in place at "planned"
+  vision,
+  roadmap: [...],       // initial approach at "planned", fleshed out at "active"
+  components: [...],    // optional, mainly filled in by "active"
   location: { type: "github" | "kicad" | ..., url },
   todos: [...], research: [...],
   archivedReason, blockers,
@@ -61,26 +65,33 @@ Rough shape:
 }
 ```
 
-All fields past `status` are optional — visibility is handled separately (see below), not by having separate schemas.
+Note that `description` is a single field, not separate brief/detailed versions — it just gets expanded in place once the project moves to Planned. All fields past `status` are optional — visibility is handled separately (see below), not by having separate schemas.
 
 ### Status-driven field visibility
 
 Which fields are shown is determined by the project's current `status`, and is additive as the project progresses (each stage shows everything the previous stage showed, plus its own extras):
 
-| Field | Idea | Active | Archived | Completed |
-|---|---|---|---|---|
-| Description, vision | ✓ | ✓ | ✓ | ✓ |
-| Category, links to other projects | ✓ | ✓ | ✓ | ✓ |
-| Components + costs, rough roadmap | optional | ✓ | ✓ | ✓ |
-| Location, to-dos, research | | ✓ | ✓ | ✓ |
-| Reason archived, blockers | | | ✓ | |
-| Finalized timeline, insights, next steps | | | | ✓ |
+| Field | Idea | Planned | Active | Archived | Completed |
+|---|---|---|---|---|---|
+| Name, one-line description | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Category, links to other projects | optional | ✓ | ✓ | ✓ | ✓ |
+| Expanded description, vision | | ✓ | ✓ | ✓ | ✓ |
+| Initial roadmap / approach | | ✓ | ✓ | ✓ | ✓ |
+| Components + costs, detailed roadmap | | optional | ✓ | ✓ | ✓ |
+| Location, to-dos, research | | | ✓ | ✓ | ✓ |
+| Reason archived, blockers | | | | ✓ | |
+| Finalized timeline, insights, next steps | | | | | ✓ |
 
 **Implementation note:** keep this mapping in one config file (e.g. `projectFieldConfig.js`) rather than scattering `if (status === ...)` checks across page components. Each page reads from this config to decide what to render. Adjusting what's visible at a given stage later means editing one file, not several components.
 
 ### Gating (future enhancement, not v1)
 
-Since the field-visibility config already defines what's expected at each stage, a natural follow-on is a parallel "required to advance" list — e.g. a project can't move from Idea to Active until description and vision are filled in. This doesn't need to be built now, but the groundwork (the config-driven field model) makes it a small addition later rather than a redesign.
+Since the field-visibility config already defines what's expected at each stage, a natural follow-on is a parallel "required to advance" list. The two natural checkpoints are:
+
+- **Idea → Planned:** requires a fleshed-out description + a vision
+- **Planned → Active:** requires at least an initial roadmap/approach
+
+This doesn't need to be built now, but the groundwork (the config-driven field model) makes it a small addition later rather than a redesign.
 
 ### Assumption
 
@@ -89,8 +100,9 @@ This is a single-user, local-first tool — run on one's own machine, no login s
 ## Tentative timeline
 
 1. Determine the overall architecture of the project *(done — this document)*
-2. Simple version of the Idea, Tracker, and Completed pages
-   - Idea page: must-haves only
+2. Simple version of the Idea, Planned, Tracker, and Completed pages
+   - Idea page: name + one-line note only
+   - Planned page: description, vision, and initial approach
    - Tracker page: shows in-progress projects and current focus
    - Completed page: shows completed projects with description + vision
 3. Repeatedly improve the pages by adding/polishing features
