@@ -120,6 +120,69 @@ a:hover {
   background: #fff;
 }
 
+.trait-chip-removable {
+  cursor: pointer;
+}
+.trait-chip-removable:hover {
+  border-color: var(--clay);
+  color: var(--clay);
+}
+
+.trait-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 0.5px solid var(--line);
+  border-radius: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 4px 10px rgba(30, 39, 51, 0.08);
+}
+
+.trait-option {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--ink);
+}
+.trait-option:hover {
+  background: var(--paper);
+  color: var(--circuit-blue);
+}
+.trait-option-new {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--moss);
+  border-top: 0.5px solid var(--line);
+}
+
+.match-toggle {
+  display: inline-flex;
+  border: 0.5px solid var(--line);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.match-toggle button {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  padding: 6px 10px;
+  border: none;
+  background: #fff;
+  color: var(--slate);
+  cursor: pointer;
+}
+.match-toggle button + button {
+  border-left: 0.5px solid var(--line);
+}
+.match-toggle button.active {
+  background: var(--ink);
+  color: #fff;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

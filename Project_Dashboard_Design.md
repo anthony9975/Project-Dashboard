@@ -52,7 +52,8 @@ Rough shape:
 ```
 {
   id, title, status: "idea" | "planned" | "active" | "archived" | "completed",
-  category, links: [{ toId, relationship }],   // optional even at "idea"
+  traits: [...],   // e.g. "software", "hardware" — optional even at "idea"
+  links: [{ toId, relationship }],   // optional even at "idea"
   description,   // starts as a one-liner, expanded in place at "planned"
   vision,
   roadmap: [...],       // initial approach at "planned", fleshed out at "active"
@@ -67,6 +68,8 @@ Rough shape:
 
 Note that `description` is a single field, not separate brief/detailed versions — it just gets expanded in place once the project moves to Planned. All fields past `status` are optional — visibility is handled separately (see below), not by having separate schemas.
 
+`traits` replaced the original single `category` field — a project can carry any number of them (e.g. `["hardware", "digital logic"]`), rather than being sorted into one bucket. The set of known traits isn't a fixed list anywhere; it's derived from whatever traits are actually in use across all projects, so the vocabulary grows organically as new traits are typed in.
+
 ### Status-driven field visibility
 
 Which fields are shown is determined by the project's current `status`, and is additive as the project progresses (each stage shows everything the previous stage showed, plus its own extras):
@@ -74,7 +77,7 @@ Which fields are shown is determined by the project's current `status`, and is a
 | Field | Idea | Planned | Active | Archived | Completed |
 |---|---|---|---|---|---|
 | Name, one-line description | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Category, links to other projects | optional | ✓ | ✓ | ✓ | ✓ |
+| Traits, links to other projects | optional | ✓ | ✓ | ✓ | ✓ |
 | Expanded description, vision | | ✓ | ✓ | ✓ | ✓ |
 | Initial roadmap / approach | | ✓ | ✓ | ✓ | ✓ |
 | Components + costs, detailed roadmap | | optional | ✓ | ✓ | ✓ |
@@ -96,6 +99,18 @@ This doesn't need to be built now, but the groundwork (the config-driven field m
 ### Assumption
 
 This is a single-user, local-first tool — run on one's own machine, no login system, no multi-user concerns. No auth layer or permissions needed as a result.
+
+### Trait picker (UI pattern)
+
+Traits are entered through a search-and-select picker, not a free-text list:
+
+- Selected traits show as removable chips above the input
+- Typing filters the existing trait list (e.g. "Soft" narrows to "Software")
+- If nothing matches, an "add new" option appears to create a brand-new trait on the spot
+- The dashboard's trait filter is the same picker collapsed behind a "Traits ▾" toggle, with new-trait creation turned off (filtering only makes sense against traits that already exist)
+- Once 2+ traits are selected, an any/all toggle appears — "any" (OR, matches projects with at least one selected trait) is the default, "all" (AND, matches projects with every selected trait) narrows further
+
+No grouping/categorization of traits beyond a flat list for now — worth revisiting if the trait list grows large enough to need it, but not before.
 
 ## Visual style
 
@@ -128,15 +143,19 @@ Three structural neutrals (Paper, Ink, Line) plus one color per project status, 
 
 **Note for implementation:** keep the grid opacity low — it should read as texture, not pattern. If it ever feels busy, dial that down before touching the palette or corner marks.
 
-## Tentative timeline
+## Status
 
-1. Determine the overall architecture of the project *(done — this document)*
-2. Simple version of the Idea, Planned, Tracker, and Completed pages
-   - Idea page: name + one-line note only
-   - Planned page: description, vision, and initial approach
-   - Tracker page: shows in-progress projects and current focus
-   - Completed page: shows completed projects with description + vision
-3. Repeatedly improve the pages by adding/polishing features
+**Built:**
+- Dashboard with status tabs (idea, planned, active, completed, archived), a collapsed trait filter with any/all matching, and card grid
+- New-idea capture page (title + one-line note only)
+- Project detail page — fields shown are driven by status; buttons to advance status, mark active projects completed/archived, or unarchive
+- Traits: search-and-select picker, multi-value, freeform vocabulary
+
+**Deferred on purpose:**
+- Gating (requirement data exists in `ADVANCE_REQUIREMENTS`, not enforced yet)
+- Linking related projects together in the UI (`links` field exists on the data model, no UI yet)
+- Grouping/categorizing traits, if the list gets large
+- Swapping JSON files for a database, if the project graph ever outgrows them (`lib/projectRepository.js` is the only file that should need to change)
 
 ## Important notes
 
