@@ -12,7 +12,7 @@ export async function getServerSideProps({ params }) {
 
 const LABELS = {
   note: 'One-line note',
-  category: 'Category',
+  traits: 'Traits (one per line, e.g. software, hardware)',
   description: 'Description',
   vision: 'Vision',
   roadmap: 'Roadmap (one step per line)',
@@ -27,7 +27,7 @@ const LABELS = {
   nextSteps: 'Next steps',
 };
 
-const LIST_FIELDS = new Set(['roadmap', 'components', 'todos', 'research', 'timeline']);
+const LIST_FIELDS = new Set(['traits', 'roadmap', 'components', 'todos', 'research', 'timeline']);
 
 function toText(value) {
   if (Array.isArray(value)) return value.join('\n');

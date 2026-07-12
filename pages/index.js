@@ -11,7 +11,25 @@ export async function getServerSideProps() {
 
 export default function Dashboard({ projects }) {
   const [filter, setFilter] = useState('all');
-  const visible = filter === 'all' ? projects : projects.filter((p) => p.status === filter);
+  const [selectedTraits, setSelectedTraits] = useState([]);
+
+  const allTraits = Array.from(
+    new Set(projects.flatMap((p) => p.traits || []))
+  ).sort();
+
+  function toggleTrait(trait) {
+    setSelectedTraits((current) =>
+      current.includes(trait) ? current.filter((t) => t !== trait) : [...current, trait]
+    );
+  }
+
+  const visible = projects
+    .filter((p) => filter === 'all' || p.status === filter)
+    .filter(
+      (p) =>
+        selectedTraits.length === 0 ||
+        selectedTraits.some((t) => (p.traits || []).includes(t))
+    );
 
   return (
     <div className="container">
@@ -47,6 +65,25 @@ export default function Dashboard({ projects }) {
         ))}
       </div>
 
+      {allTraits.length > 0 && (
+        <div className="tabs" style={{ marginBottom: 24 }}>
+          {allTraits.map((trait) => (
+            <button
+              key={trait}
+              className={`tab trait-tab${selectedTraits.includes(trait) ? ' active-tab' : ''}`}
+              onClick={() => toggleTrait(trait)}
+            >
+              {trait}
+            </button>
+          ))}
+          {selectedTraits.length > 0 && (
+            <button className="tab" onClick={() => setSelectedTraits([])}>
+              clear traits
+            </button>
+          )}
+        </div>
+      )}
+
       {visible.length === 0 && <p style={{ color: 'var(--slate)' }}>Nothing here yet.</p>}
 
       <div className="grid">
@@ -64,6 +101,15 @@ export default function Dashboard({ projects }) {
             <div style={{ fontSize: 12, color: 'var(--slate)', marginBottom: 10, minHeight: 32 }}>
               {project.note || project.description || ''}
             </div>
+            {project.traits && project.traits.length > 0 && (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                {project.traits.map((trait) => (
+                  <span key={trait} className="trait-chip">
+                    {trait}
+                  </span>
+                ))}
+              </div>
+            )}
             <span className={`tag tag-${project.status}`}>{project.status}</span>
           </Link>
         ))}

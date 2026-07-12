@@ -15,12 +15,16 @@ start clean.
 
 ## What's here
 
-- `pages/index.js` — dashboard with status tabs (idea, planned, active, completed, archived)
-  and a card grid.
+- `pages/index.js` — dashboard with status tabs (idea, planned, active, completed, archived),
+  a trait filter row (derived from whatever traits are actually in use across your projects),
+  and a card grid. Trait filtering is OR-based: selecting multiple traits shows projects that
+  match any of them.
 - `pages/new.js` — capture a new idea (title + one-line note only, on purpose).
 - `pages/projects/[id].js` — project detail page. Which fields show up is driven entirely by
-  `lib/projectFieldConfig.js`, based on the project's status. Includes buttons to move a
-  project forward a stage, mark it completed/archived from active, or unarchive.
+  `lib/projectFieldConfig.js`, based on the project's status. `traits` (e.g. software,
+  hardware, digital logic — one per line) is available starting at Idea, but optional there,
+  so quick-capture stays frictionless. Also includes buttons to move a project forward a
+  stage, mark it completed/archived from active, or unarchive.
 - `lib/projectFieldConfig.js` — status order, labels, and field visibility per status. Edit
   this file to change what's shown at each stage.
 - `lib/projectRepository.js` — the only file that touches the filesystem. Read/write/create
@@ -28,9 +32,11 @@ start clean.
 - `pages/api/projects/` — thin API routes that call the repository. Pages never read/write
   files directly.
 - `data/projects/*.json` — one file per project.
-- `data/index.json` — categories list and a `links` array for connecting related projects.
-  The data model supports this (see `links` in the design doc), but the UI for browsing/
-  creating links isn't built yet — that's a good next iteration.
+- `data/index.json` — a curated list of known traits and a `links` array for connecting
+  related projects. Neither is consumed by the UI yet — the trait filter on the dashboard
+  derives its options directly from whatever traits are actually on your projects, which is
+  simpler for now. `data/index.json` is there for when you want a fixed vocabulary or
+  autocomplete instead.
 
 ## Deferred on purpose (see design doc)
 
