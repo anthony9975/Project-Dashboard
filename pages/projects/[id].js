@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { getProject, getAllTraits } from '../../lib/projectRepository';
 import { STATUS_LABELS, fieldsFor, nextStatus } from '../../lib/projectFieldConfig';
 import TraitPicker from '../../components/TraitPicker';
+import EditableField from '../../components/EditableField';
 
 export async function getServerSideProps({ params }) {
   const project = getProject(params.id);
@@ -13,7 +13,6 @@ export async function getServerSideProps({ params }) {
 
 const LABELS = {
   note: 'One-line note',
-  traits: 'Traits',
   description: 'Description',
   vision: 'Vision',
   roadmap: 'Roadmap (one step per line)',
@@ -30,45 +29,30 @@ const LABELS = {
 
 const LIST_FIELDS = new Set(['roadmap', 'components', 'todos', 'research', 'timeline']);
 
-function toText(value) {
-  if (Array.isArray(value)) return value.join('\n');
-  return value || '';
-}
+// Each field saves itself independently now (see EditableField) — there's no page-wide
+// "Save changes" button anymore. Status changes are the one thing that still happen via
+// dedicated buttons, since they're an action rather than a field edit.
+export default function ProjectDetail({ project: initialProject, allTraits }) {
+  const [project, setProject] = useState(initialProject);
+  const [statusSaving, setStatusSaving] = useState(false);
 
-export default function ProjectDetail({ project, allTraits }) {
-  const router = useRouter();
-  const fields = fieldsFor(project.status).filter((f) => f !== 'title');
-  const [values, setValues] = useState(() => {
-    const initial = {};
-    fields.forEach((f) => {
-      initial[f] = f === 'traits' ? project.traits || [] : toText(project[f]);
-    });
-    return initial;
-  });
-  const [saving, setSaving] = useState(false);
+  const fields = fieldsFor(project.status).filter((f) => f !== 'title' && f !== 'traits');
+  const showTraits = fieldsFor(project.status).includes('traits');
 
-  async function save(extra = {}) {
-    setSaving(true);
-    const payload = { ...extra };
-    fields.forEach((f) => {
-      if (f === 'traits') {
-        payload.traits = values.traits;
-      } else {
-        payload[f] = LIST_FIELDS.has(f)
-          ? values[f]
-              .split('\n')
-              .map((s) => s.trim())
-              .filter(Boolean)
-          : values[f];
-      }
-    });
-    await fetch(`/api/projects/${project.id}`, {
+  async function saveField(key, value) {
+    const res = await fetch(`/api/projects/${project.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ [key]: value }),
     });
-    setSaving(false);
-    router.reload();
+    const updated = await res.json();
+    setProject(updated);
+  }
+
+  async function changeStatus(newStatus) {
+    setStatusSaving(true);
+    await saveField('status', newStatus);
+    setStatusSaving(false);
   }
 
   const forward = nextStatus(project.status);
@@ -78,61 +62,69 @@ export default function ProjectDetail({ project, allTraits }) {
       <Link href="/" style={{ fontSize: 13 }}>
         &larr; all projects
       </Link>
+
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'baseline',
-          margin: '16px 0 20px',
+          alignItems: 'flex-start',
+          margin: '16px 0 4px',
+          gap: 12,
         }}
       >
-        <h1>{project.title}</h1>
-        <span className={`tag tag-${project.status}`}>{project.status}</span>
+        <EditableField
+          label="Title"
+          value={project.title}
+          headingDisplay
+          onSave={(v) => saveField('title', v)}
+        />
+        <span className={`tag tag-${project.status}`} style={{ marginTop: 6 }}>
+          {project.status}
+        </span>
       </div>
 
-      {fields.map((f) => (
-        <div className="field-block" key={f}>
-          <div className="field-label">{LABELS[f]}</div>
-          {f === 'traits' ? (
-            <TraitPicker
-              value={values.traits}
-              options={allTraits}
-              onChange={(traits) => setValues({ ...values, traits })}
-            />
-          ) : (
-            <textarea
-              rows={LIST_FIELDS.has(f) ? 3 : 2}
-              value={values[f]}
-              onChange={(e) => setValues({ ...values, [f]: e.target.value })}
-            />
-          )}
+      {showTraits && (
+        <div className="field-block">
+          <div className="field-label">Traits</div>
+          <TraitPicker
+            value={project.traits || []}
+            options={allTraits}
+            onChange={(traits) => saveField('traits', traits)}
+          />
         </div>
+      )}
+
+      {fields.map((f) => (
+        <EditableField
+          key={f}
+          label={LABELS[f]}
+          value={project[f]}
+          isList={LIST_FIELDS.has(f)}
+          rows={LIST_FIELDS.has(f) ? 3 : 2}
+          onSave={(v) => saveField(f, v)}
+        />
       ))}
 
-      <div style={{ display: 'flex', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
-        <button className="btn" onClick={() => save()} disabled={saving}>
-          {saving ? 'Saving…' : 'Save changes'}
-        </button>
-
+      <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
         {forward && (
-          <button className="btn" onClick={() => save({ status: forward })} disabled={saving}>
+          <button className="btn" onClick={() => changeStatus(forward)} disabled={statusSaving}>
             Move to {STATUS_LABELS[forward].toLowerCase()} &rarr;
           </button>
         )}
 
         {project.status === 'active' && (
           <>
-            <button className="btn" onClick={() => save({ status: 'completed' })} disabled={saving}>
+            <button className="btn" onClick={() => changeStatus('completed')} disabled={statusSaving}>
               Mark completed
             </button>
-            <button className="btn" onClick={() => save({ status: 'archived' })} disabled={saving}>
+            <button className="btn" onClick={() => changeStatus('archived')} disabled={statusSaving}>
               Archive
             </button>
           </>
         )}
 
         {project.status === 'archived' && (
-          <button className="btn" onClick={() => save({ status: 'active' })} disabled={saving}>
+          <button className="btn" onClick={() => changeStatus('active')} disabled={statusSaving}>
             Unarchive
           </button>
         )}
