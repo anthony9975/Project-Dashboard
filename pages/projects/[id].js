@@ -4,6 +4,7 @@ import { getProject, getAllTraits } from '../../lib/projectRepository';
 import { STATUS_LABELS, fieldsFor, nextStatus } from '../../lib/projectFieldConfig';
 import TraitPicker from '../../components/TraitPicker';
 import EditableField from '../../components/EditableField';
+import RoadmapTimeline from '../../components/RoadmapTimeline';
 
 export async function getServerSideProps({ params }) {
   const project = getProject(params.id);
@@ -15,7 +16,6 @@ const LABELS = {
   note: 'One-line note',
   description: 'Description',
   vision: 'Vision',
-  roadmap: 'Roadmap (one step per line)',
   components: 'Components + costs (one per line)',
   location: 'Location (repo, KiCad project, etc.)',
   todos: 'To-dos (one per line)',
@@ -27,7 +27,7 @@ const LABELS = {
   nextSteps: 'Next steps',
 };
 
-const LIST_FIELDS = new Set(['roadmap', 'components', 'todos', 'research', 'timeline']);
+const LIST_FIELDS = new Set(['components', 'todos', 'research', 'timeline']);
 
 // Each field saves itself independently now (see EditableField) — there's no page-wide
 // "Save changes" button anymore. Status changes are the one thing that still happen via
@@ -94,16 +94,26 @@ export default function ProjectDetail({ project: initialProject, allTraits }) {
         </div>
       )}
 
-      {fields.map((f) => (
-        <EditableField
-          key={f}
-          label={LABELS[f]}
-          value={project[f]}
-          isList={LIST_FIELDS.has(f)}
-          rows={LIST_FIELDS.has(f) ? 3 : 2}
-          onSave={(v) => saveField(f, v)}
-        />
-      ))}
+      {fields.map((f) =>
+        f === 'roadmap' ? (
+          <div className="field-block" key="roadmap">
+            <div className="field-label">Roadmap</div>
+            <RoadmapTimeline
+              value={project.roadmap || []}
+              onChange={(roadmap) => saveField('roadmap', roadmap)}
+            />
+          </div>
+        ) : (
+          <EditableField
+            key={f}
+            label={LABELS[f]}
+            value={project[f]}
+            isList={LIST_FIELDS.has(f)}
+            rows={LIST_FIELDS.has(f) ? 3 : 2}
+            onSave={(v) => saveField(f, v)}
+          />
+        )
+      )}
 
       <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
         {forward && (
