@@ -57,6 +57,7 @@ Rough shape:
   description,   // starts as a one-liner, expanded in place at "planned"
   vision,
   roadmap: [...],       // initial approach at "planned", fleshed out at "active"
+                         // each step: {id, text, status, todos: [{id, text, status}]}
   components: [...],    // optional, mainly filled in by "active"
   location: { type: "github" | "kicad" | ..., url },
   todos: [...], research: [...],
@@ -112,6 +113,31 @@ Traits are entered through a search-and-select picker, not a free-text list:
 
 No grouping/categorization of traits beyond a flat list for now — worth revisiting if the trait list grows large enough to need it, but not before.
 
+### Per-field editing (UI pattern)
+
+Every field on the project detail page — including the title — displays as plain read-only text by default, with a small pencil icon beside it. Clicking the pencil swaps just that field into an editable box; a confirm button saves it (and snaps back to read-only display), a cancel button discards the draft. There's no page-wide "Save changes" button — each field saves itself independently the moment it's confirmed.
+
+Traits and the roadmap (below) don't follow this exact pattern — they're rich widgets (a picker, a timeline) rather than plain text, so their own interactions apply immediately without a separate confirm step.
+
+### Roadmap timeline (UI pattern)
+
+The roadmap is a vertical timeline, not the original plain "one step per line" text field:
+
+- Each step has a 3-state status (not started / in progress / done) — click its dot to cycle through them
+- Steps are drag-to-reorder; a progress bar at the top reflects steps completed, not to-do counts
+- Each step has its own nested to-do list (see below), collapsed by default
+- Editing a step's or to-do's text uses the same pencil/confirm/cancel pattern as everywhere else
+
+**Nested to-dos:** each step can carry its own mini to-do list — same 3-state status and edit pattern as steps, but *not* drag-to-reorder (order doesn't matter for them). A collapse/expand chevron sits next to each step's pencil/× to show or hide its to-dos.
+
+**Two automatic behaviors:**
+- Setting a step to "in progress" auto-expands its to-do list
+- Completing the last to-do under a step auto-completes the step
+
+Both are one-directional — completing to-dos can push a step *toward* done, but nothing ever auto-reverts a step away from done. This matters because manually marking a step done early (before its to-dos are finished) is explicitly allowed; if reopening a to-do afterward auto-reverted the step, that manual override would silently get undone.
+
+Expand/collapse state isn't persisted — it's recomputed on page load from whether a step is in progress, so it doesn't need its own saved field.
+
 ## Visual style
 
 **Direction:** a light drafting/blueprint aesthetic — grid paper, hairline strokes, and small corner registration marks (echoing PCB fiducials and technical drawing conventions), on a pale cool-white background. Technical because it borrows the vernacular of the tools actually used (KiCad, GitHub), not because it's dark.
@@ -148,8 +174,9 @@ Three structural neutrals (Paper, Ink, Line) plus one color per project status, 
 **Built:**
 - Dashboard with status tabs (idea, planned, active, completed, archived), a collapsed trait filter with any/all matching, and card grid
 - New-idea capture page (title + one-line note only)
-- Project detail page — fields shown are driven by status; buttons to advance status, mark active projects completed/archived, or unarchive
+- Project detail page — every field, including title, is plain text with a pencil to edit and confirm/cancel to save; no page-wide save button. Buttons to advance status, mark active projects completed/archived, or unarchive
 - Traits: search-and-select picker, multi-value, freeform vocabulary
+- Roadmap: vertical timeline, drag-to-reorder steps, 3-state status, nested per-step to-do lists with their own 3-state status, collapse/expand, and the two auto-behaviors (auto-expand on in-progress, auto-complete on all-todos-done)
 
 **Deferred on purpose:**
 - Gating (requirement data exists in `ADVANCE_REQUIREMENTS`, not enforced yet)
