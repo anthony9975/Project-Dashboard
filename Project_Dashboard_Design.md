@@ -128,7 +128,7 @@ The roadmap is a vertical timeline, not the original plain "one step per line" t
 - Each step has its own nested to-do list (see below), collapsed by default
 - Editing a step's or to-do's text uses the same pencil/confirm/cancel pattern as everywhere else
 
-**Nested to-dos:** each step can carry its own mini to-do list — same 3-state status and edit pattern as steps, but *not* drag-to-reorder (order doesn't matter for them). A collapse/expand chevron sits next to each step's pencil/× to show or hide its to-dos.
+**Nested to-dos:** each step can carry its own mini to-do list — same 3-state status, edit pattern, and drag-to-reorder as steps, kept independent per step (dragging one step's to-dos can't affect another's). Reordering exists so the most urgent to-dos can be pulled to the top. A collapse/expand chevron sits next to each step's pencil/× to show or hide its to-dos.
 
 **Two automatic behaviors:**
 - Setting a step to "in progress" auto-expands its to-do list
@@ -137,6 +137,8 @@ The roadmap is a vertical timeline, not the original plain "one step per line" t
 Both are one-directional — completing to-dos can push a step *toward* done, but nothing ever auto-reverts a step away from done. This matters because manually marking a step done early (before its to-dos are finished) is explicitly allowed; if reopening a to-do afterward auto-reverted the step, that manual override would silently get undone.
 
 Expand/collapse state isn't persisted — it's recomputed on page load from whether a step is in progress, so it doesn't need its own saved field.
+
+**CSS gotcha worth remembering:** step dots (`.rm-vnode`) and to-do dots (`.rm-todo-node`) share status coloring via generic `.status-in_progress` / `.status-done` modifier classes rather than duplicating colors per node type. Since a shared modifier and a node's own base class have equal CSS specificity, whichever is defined *later* in the stylesheet wins — so these shared modifiers have to stay below both `.rm-vnode` and `.rm-todo-node` in `globals.css`, not above them. (This broke once already: the to-do dots rendered with the right symbol but no color, because the shared modifiers were declared before `.rm-todo-node`'s own neutral styles.) The same risk applies to any future node type that reuses these modifiers.
 
 ## Visual style
 
@@ -176,7 +178,7 @@ Three structural neutrals (Paper, Ink, Line) plus one color per project status, 
 - New-idea capture page (title + one-line note only)
 - Project detail page — every field, including title, is plain text with a pencil to edit and confirm/cancel to save; no page-wide save button. Buttons to advance status, mark active projects completed/archived, or unarchive
 - Traits: search-and-select picker, multi-value, freeform vocabulary
-- Roadmap: vertical timeline, drag-to-reorder steps, 3-state status, nested per-step to-do lists with their own 3-state status, collapse/expand, and the two auto-behaviors (auto-expand on in-progress, auto-complete on all-todos-done)
+- Roadmap: vertical timeline, drag-to-reorder steps, 3-state status, nested per-step to-do lists with their own 3-state status, their own independent drag-to-reorder, collapse/expand, and the two auto-behaviors (auto-expand on in-progress, auto-complete on all-todos-done)
 
 **Deferred on purpose:**
 - Gating (requirement data exists in `ADVANCE_REQUIREMENTS`, not enforced yet)
