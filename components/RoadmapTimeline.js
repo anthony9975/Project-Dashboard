@@ -15,6 +15,35 @@ function allTodosDone(todos) {
   return todos.length > 0 && todos.every((t) => t.status === 'done');
 }
 
+function todayISO() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  if (!y || !m || !d) return '';
+  return new Date(y, m - 1, d).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+// Applies a new status to a step, auto-stamping completedDate with today when the step
+// becomes "done" — but only if no date is already set, so this never overwrites a date
+// the user typed in themselves or already auto-stamped. Cycling a step off "done" later
+// leaves whatever date is there untouched; clearing it is a manual edit, same as any
+// other field.
+function withStatus(step, newStatus) {
+  if (newStatus === 'done' && !step.completedDate) {
+    return { ...step, status: newStatus, completedDate: todayISO() };
+  }
+  return { ...step, status: newStatus };
+}
+
 // Vertical roadmap timeline with a nested to-do list per step.
 //
 // - Click a step's or to-do's dot to cycle status (not started -> in progress -> done).
@@ -23,6 +52,12 @@ function allTodosDone(todos) {
 // - A step auto-completes once every to-do under it is done. This only ever pushes a step
 //   toward done, never away from it — reopening a to-do afterward won't un-complete a step,
 //   so a manual "done" override always sticks even with to-dos left unfinished.
+// - Each step carries one optional completedDate. It's auto-stamped with today's date the
+//   moment a step becomes "done" (whether by manual cycling or the all-todos-done
+//   auto-complete above), but only if it's currently blank — so it never clobbers a date
+//   you've typed in or already changed. It's always editable/clearable via the same
+//   pencil/confirm/cancel flow as the step text. This is what turns a completed project's
+//   roadmap into its finished timeline — no separate timeline field needed.
 // - Expand/collapse state is page-local, not saved — it's recomputed on load from whether
 //   the step is in progress, so it doesn't need its own persisted field.
 export default function RoadmapTimeline({ value, onChange }) {
@@ -51,7 +86,7 @@ export default function RoadmapTimeline({ value, onChange }) {
   }
 
   function cycleStepStatus(id) {
-    const updated = items.map((s) => (s.id === id ? { ...s, status: nextStatus(s.status) } : s));
+    const updated = items.map((s) => (s.id === id ? withStatus(s, nextStatus(s.status)) : s));
     commit(updated);
     const changed = updated.find((s) => s.id === id);
     if (changed.status === 'in_progress') {
@@ -59,8 +94,10 @@ export default function RoadmapTimeline({ value, onChange }) {
     }
   }
 
-  function editStepText(id, text) {
-    commit(items.map((s) => (s.id === id ? { ...s, text } : s)));
+  // Saves a step's text and completedDate together in one commit (one PATCH round trip)
+  // rather than as two separate field updates.
+  function editStep(id, updates) {
+    commit(items.map((s) => (s.id === id ? { ...s, ...updates } : s)));
   }
 
   function removeStep(id) {
@@ -69,7 +106,10 @@ export default function RoadmapTimeline({ value, onChange }) {
 
   function addStep() {
     if (!newStepText.trim()) return;
-    commit([...items, { id: makeId(), text: newStepText.trim(), status: 'not_started', todos: [] }]);
+    commit([
+      ...items,
+      { id: makeId(), text: newStepText.trim(), status: 'not_started', todos: [], completedDate: '' },
+    ]);
     setNewStepText('');
   }
 
@@ -81,7 +121,7 @@ export default function RoadmapTimeline({ value, onChange }) {
     const updated = items.map((s) => {
       if (s.id !== stepId) return s;
       const todos = s.todos.map((t) => (t.id === todoId ? { ...t, status: nextStatus(t.status) } : t));
-      return { ...s, todos, status: allTodosDone(todos) ? 'done' : s.status };
+      return { ...withStatus(s, allTodosDone(todos) ? 'done' : s.status), todos };
     });
     commit(updated);
   }
@@ -91,7 +131,7 @@ export default function RoadmapTimeline({ value, onChange }) {
     const updated = items.map((s) => {
       if (s.id !== stepId) return s;
       const todos = [...s.todos, { id: makeId(), text: text.trim(), status: 'not_started' }];
-      return { ...s, todos, status: allTodosDone(todos) ? 'done' : s.status };
+      return { ...withStatus(s, allTodosDone(todos) ? 'done' : s.status), todos };
     });
     commit(updated);
   }
@@ -107,7 +147,7 @@ export default function RoadmapTimeline({ value, onChange }) {
     const updated = items.map((s) => {
       if (s.id !== stepId) return s;
       const todos = s.todos.filter((t) => t.id !== todoId);
-      return { ...s, todos, status: allTodosDone(todos) ? 'done' : s.status };
+      return { ...withStatus(s, allTodosDone(todos) ? 'done' : s.status), todos };
     });
     commit(updated);
   }
@@ -163,7 +203,7 @@ export default function RoadmapTimeline({ value, onChange }) {
           onDrop={handleDrop}
           onDragEnd={handleDragEnd}
           onCycleStatus={() => cycleStepStatus(step.id)}
-          onEditText={(text) => editStepText(step.id, text)}
+          onEditStep={(updates) => editStep(step.id, updates)}
           onRemove={() => removeStep(step.id)}
           onCycleTodoStatus={(todoId) => cycleTodoStatus(step.id, todoId)}
           onAddTodo={(text) => addTodo(step.id, text)}
@@ -198,7 +238,7 @@ function StepRow({
   onDrop,
   onDragEnd,
   onCycleStatus,
-  onEditText,
+  onEditStep,
   onRemove,
   onCycleTodoStatus,
   onAddTodo,
@@ -208,14 +248,16 @@ function StepRow({
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(step.text);
+  const [dateDraft, setDateDraft] = useState(step.completedDate || '');
   const [newTodoText, setNewTodoText] = useState('');
 
   function startEdit() {
     setDraft(step.text);
+    setDateDraft(step.completedDate || '');
     setEditing(true);
   }
   function confirmEdit() {
-    onEditText(draft);
+    onEditStep({ text: draft, completedDate: dateDraft });
     setEditing(false);
   }
 
@@ -285,6 +327,10 @@ function StepRow({
         {editing ? (
           <div>
             <input value={draft} onChange={(e) => setDraft(e.target.value)} autoFocus />
+            <div className="field-label" style={{ marginTop: 8 }}>
+              Completed date (optional)
+            </div>
+            <input type="date" value={dateDraft} onChange={(e) => setDateDraft(e.target.value)} />
             <div className="field-edit-actions">
               <button type="button" className="field-confirm-btn" onClick={confirmEdit}>
                 ✓ save
@@ -296,7 +342,10 @@ function StepRow({
           </div>
         ) : (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-            <span className={`rm-vlabel${step.status === 'done' ? ' rm-done-text' : ''}`}>{step.text}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span className={`rm-vlabel${step.status === 'done' ? ' rm-done-text' : ''}`}>{step.text}</span>
+              {step.completedDate && <span className="rm-step-date">{formatDate(step.completedDate)}</span>}
+            </div>
             <span style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
               <button
                 type="button"

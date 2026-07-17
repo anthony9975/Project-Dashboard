@@ -68,9 +68,9 @@ The only file allowed to call `fs.readFileSync` / `fs.writeFileSync`. Exports:
 - `getAllTraits()` — derives the known-traits list from every project's `traits` array
 
 It also runs `normalizeProject()` on every read, which transparently upgrades old data
-shapes (e.g. a roadmap step that predates the nested-to-do feature) so old projects don't
-break when the schema evolves. If you add a new field or change a shape, this is where the
-upgrade logic goes.
+shapes (e.g. a roadmap step that predates the nested-to-do feature, or predates the
+`completedDate` field) so old projects don't break when the schema evolves. If you add a
+new field or change a shape, this is where the upgrade logic goes.
 
 ### `lib/projectFieldConfig.js` — status + field rules
 
@@ -109,7 +109,10 @@ repository directly — see below).
 - **`RoadmapTimeline`** is the most involved component: drag-to-reorder steps, a nested
   `StepRow` per step containing its own drag-to-reorder `TodoRow` list, and the two
   auto-behaviors (auto-expand on in-progress, auto-complete on all-to-dos-done) described
-  in the design doc.
+  in the design doc. Each step also carries an optional `completedDate`, auto-stamped when
+  a step becomes done (only if blank) and editable via the same pencil flow as the step
+  text — this is what makes the roadmap double as a completed project's finished timeline,
+  so there's no separate `timeline` field or component.
 
 ### `styles/globals.css`
 

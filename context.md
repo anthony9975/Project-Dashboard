@@ -37,9 +37,16 @@ Single user, runs on one machine, no auth.
   is done — but never auto-reverts, since manually marking a step done early is allowed
   and shouldn't get silently undone later.
 - **Old data formats upgrade transparently on read** (see `normalizeProject` in the
-  repository) rather than requiring manual migration — this has already happened twice
-  (roadmap strings → objects, then objects gaining a `todos` field) and is the pattern to
-  keep using for future schema changes.
+  repository) rather than requiring manual migration — this has already happened three
+  times (roadmap strings → objects, objects gaining a `todos` field, then a `completedDate`
+  field) and is the pattern to keep using for future schema changes.
+- **The separate `timeline` field is gone.** The roadmap now doubles as the finished
+  timeline: each step carries an optional `completedDate`, auto-stamped with today's date
+  the moment a step becomes "done" (manually or via the all-todos-done auto-complete), but
+  only if that step doesn't already have a date — so it never overwrites one you've set or
+  edited. It's always editable/clearable via the same pencil/confirm/cancel flow as the
+  step text. Completed projects just keep showing the same roadmap they've had since
+  Planned; there's no separate text field to fill in a second time.
 - **Gating and cross-project links are deferred, not abandoned.** The data model and
   config already have room for both (`ADVANCE_REQUIREMENTS`, the `links` field) — they're
   intentionally not built yet.

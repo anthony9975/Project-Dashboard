@@ -56,18 +56,26 @@ Rough shape:
   links: [{ toId, relationship }],   // optional even at "idea"
   description,   // starts as a one-liner, expanded in place at "planned"
   vision,
-  roadmap: [...],       // initial approach at "planned", fleshed out at "active"
-                         // each step: {id, text, status, todos: [{id, text, status}]}
+  roadmap: [...],       // initial approach at "planned", fleshed out at "active",
+                         // and doubles as the finished timeline once "completed"
+                         // each step: {id, text, status, completedDate, todos: [{id, text, status}]}
   components: [...],    // optional, mainly filled in by "active"
   location: { type: "github" | "kicad" | ..., url },
   todos: [...], research: [...],
   archivedReason, blockers,
-  timeline: [{ date, event }],
   insights, nextSteps
 }
 ```
 
 Note that `description` is a single field, not separate brief/detailed versions — it just gets expanded in place once the project moves to Planned. All fields past `status` are optional — visibility is handled separately (see below), not by having separate schemas.
+
+There is no separate `timeline` field. A roadmap step's `completedDate` is auto-stamped with
+today's date the moment that step becomes "done" (whether by manually cycling its status or
+via the all-todos-done auto-complete), but only if the step doesn't already have a date —
+so it never overwrites one that's been set or edited. The date is always editable/clearable
+through the same pencil/confirm/cancel flow as the step's text. The result: a project's
+roadmap, which already exists from Planned onward, naturally becomes its dated finished
+timeline by the time it reaches Completed — nothing new to fill in.
 
 `traits` replaced the original single `category` field — a project can carry any number of them (e.g. `["hardware", "digital logic"]`), rather than being sorted into one bucket. The set of known traits isn't a fixed list anywhere; it's derived from whatever traits are actually in use across all projects, so the vocabulary grows organically as new traits are typed in.
 
@@ -84,7 +92,11 @@ Which fields are shown is determined by the project's current `status`, and is a
 | Components + costs, detailed roadmap | | optional | ✓ | ✓ | ✓ |
 | Location, to-dos, research | | | ✓ | ✓ | ✓ |
 | Reason archived, blockers | | | | ✓ | |
-| Finalized timeline, insights, next steps | | | | | ✓ |
+| Insights, next steps | | | | | ✓ |
+
+The roadmap (with its per-step dates) is already visible from Planned onward and simply
+carries forward as the finished timeline at Completed — it isn't a separate row above
+because it's not a separate field.
 
 **Implementation note:** keep this mapping in one config file (e.g. `projectFieldConfig.js`) rather than scattering `if (status === ...)` checks across page components. Each page reads from this config to decide what to render. Adjusting what's visible at a given stage later means editing one file, not several components.
 
@@ -138,6 +150,16 @@ Both are one-directional — completing to-dos can push a step *toward* done, bu
 
 Expand/collapse state isn't persisted — it's recomputed on page load from whether a step is in progress, so it doesn't need its own saved field.
 
+**Per-step completed date, and why there's no separate `timeline` field:** each step carries
+an optional `completedDate`. It auto-stamps with today's date the instant a step becomes
+"done" — by manual cycling or by the all-todos-done auto-complete — but only if the step
+doesn't already have a date, so it never clobbers one that's been set or hand-edited
+afterward. It's always editable and can be cleared, through the same pencil/confirm/cancel
+flow as the step's text (both save together in one edit). Because the roadmap is already
+visible from Planned onward and now carries real dates, it *is* the finished timeline by
+the time a project reaches Completed — there's no separate text field to duplicate that
+information into a second time.
+
 **CSS gotcha worth remembering:** step dots (`.rm-vnode`) and to-do dots (`.rm-todo-node`) share status coloring via generic `.status-in_progress` / `.status-done` modifier classes rather than duplicating colors per node type. Since a shared modifier and a node's own base class have equal CSS specificity, whichever is defined *later* in the stylesheet wins — so these shared modifiers have to stay below both `.rm-vnode` and `.rm-todo-node` in `globals.css`, not above them. (This broke once already: the to-do dots rendered with the right symbol but no color, because the shared modifiers were declared before `.rm-todo-node`'s own neutral styles.) The same risk applies to any future node type that reuses these modifiers.
 
 ## Visual style
@@ -178,7 +200,7 @@ Three structural neutrals (Paper, Ink, Line) plus one color per project status, 
 - New-idea capture page (title + one-line note only)
 - Project detail page — every field, including title, is plain text with a pencil to edit and confirm/cancel to save; no page-wide save button. Buttons to advance status, mark active projects completed/archived, or unarchive
 - Traits: search-and-select picker, multi-value, freeform vocabulary
-- Roadmap: vertical timeline, drag-to-reorder steps, 3-state status, nested per-step to-do lists with their own 3-state status, their own independent drag-to-reorder, collapse/expand, and the two auto-behaviors (auto-expand on in-progress, auto-complete on all-todos-done)
+- Roadmap: vertical timeline, drag-to-reorder steps, 3-state status, nested per-step to-do lists with their own 3-state status, their own independent drag-to-reorder, collapse/expand, and the two auto-behaviors (auto-expand on in-progress, auto-complete on all-todos-done). Each step also has an editable, auto-stamped `completedDate` — the roadmap now doubles as the finished timeline once a project is completed, so the separate `timeline` field has been removed
 
 **Deferred on purpose:**
 - Gating (requirement data exists in `ADVANCE_REQUIREMENTS`, not enforced yet)

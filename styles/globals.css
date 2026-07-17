@@ -421,6 +421,12 @@ textarea {
   color: var(--ink);
   line-height: 1.5;
 }
+
+.rm-step-date {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--slate);
+}
 .rm-done-text {
   color: var(--slate);
   text-decoration: line-through;

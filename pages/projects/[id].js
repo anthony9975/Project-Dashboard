@@ -22,16 +22,21 @@ const LABELS = {
   research: 'Research (one link/note per line)',
   archivedReason: 'Why archived',
   blockers: 'Blockers',
-  timeline: 'Timeline (one entry per line)',
   insights: 'Insights',
   nextSteps: 'Next steps',
 };
 
-const LIST_FIELDS = new Set(['components', 'todos', 'research', 'timeline']);
+const LIST_FIELDS = new Set(['components', 'todos', 'research']);
 
 // Each field saves itself independently now (see EditableField) — there's no page-wide
 // "Save changes" button anymore. Status changes are the one thing that still happen via
 // dedicated buttons, since they're an action rather than a field edit.
+//
+// Note: there's no separate "timeline" field or render branch. The roadmap (rendered below,
+// via RoadmapTimeline) is already visible from "planned" onward and carries per-step
+// completedDate, so it doubles as the finished timeline once a project reaches "completed" —
+// fieldsFor('completed') simply doesn't include 'timeline' anymore, so nothing extra is
+// needed here to hide it.
 export default function ProjectDetail({ project: initialProject, allTraits }) {
   const [project, setProject] = useState(initialProject);
   const [statusSaving, setStatusSaving] = useState(false);
