@@ -275,12 +275,21 @@ function StepRow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step.todos, todoDragging]);
 
-  function handleTodoDragStart(index) {
+  // Every handler here calls stopPropagation. The .rm-todo-row elements are nested inside
+  // their step's own draggable .rm-vstep, and drag events bubble — without stopping them,
+  // dragging a to-do also fires the step's drag handlers on the way up. That was the actual
+  // bug behind "reordering sometimes doesn't save": the step's onDrop still fires afterward
+  // and calls onChange with its own stale pre-reorder `items` closure, racing a second,
+  // wrong PATCH request against the correct one just sent by onReorderTodos below — and
+  // whichever response lands second silently wins.
+  function handleTodoDragStart(e, index) {
+    e.stopPropagation();
     todoDraggedIndex.current = index;
     setTodoDragging(true);
   }
   function handleTodoDragOver(e, index) {
     e.preventDefault();
+    e.stopPropagation();
     const from = todoDraggedIndex.current;
     if (from === null || from === index) return;
     const updated = [...localTodos];
@@ -289,12 +298,14 @@ function StepRow({
     todoDraggedIndex.current = index;
     setLocalTodos(updated);
   }
-  function handleTodoDrop() {
+  function handleTodoDrop(e) {
+    e.stopPropagation();
     setTodoDragging(false);
     todoDraggedIndex.current = null;
     onReorderTodos(localTodos);
   }
-  function handleTodoDragEnd() {
+  function handleTodoDragEnd(e) {
+    e.stopPropagation();
     setTodoDragging(false);
     todoDraggedIndex.current = null;
   }
@@ -371,7 +382,7 @@ function StepRow({
               <TodoRow
                 key={todo.id}
                 todo={todo}
-                onDragStart={() => handleTodoDragStart(i)}
+                onDragStart={(e) => handleTodoDragStart(e, i)}
                 onDragOver={(e) => handleTodoDragOver(e, i)}
                 onDrop={handleTodoDrop}
                 onDragEnd={handleTodoDragEnd}

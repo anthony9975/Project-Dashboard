@@ -62,6 +62,13 @@ Single user, runs on one machine, no auth.
   be defined *after* every node base class that uses them (`.rm-vnode`, `.rm-todo-node`,
   and any future one) — equal specificity means source order decides the winner, and this
   has already broken once (to-do dots showed the right symbol but no color).
+- **Gotcha:** nested draggable elements need `e.stopPropagation()` in every drag handler
+  (`dragstart`/`dragover`/`drop`/`dragend`). To-do rows are draggable inside their step's
+  own draggable row, and native drag events bubble — without stopping them, dragging a
+  to-do also fired the step's own drag handlers on the way up, whose `onDrop` used a stale
+  closure and would intermittently overwrite a just-saved reorder with the old order (this
+  was the "to-do reordering sometimes doesn't save" bug). Any future draggable-inside-
+  draggable UI needs the same treatment.
 
 ## Visual identity, in one line
 
