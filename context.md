@@ -36,6 +36,14 @@ Single user, runs on one machine, no auth.
   auto-expands its to-dos when set to "in progress," and auto-completes once every to-do
   is done — but never auto-reverts, since manually marking a step done early is allowed
   and shouldn't get silently undone later.
+- **Components + costs is a structured table, not free text.** Each row is
+  `{id, name, link, price, notes}`. Price is strictly numeric (unlike every other
+  list-style field, which stays free text) so it can be summed into a running total shown
+  at the bottom of the table. A component's name is the clickable link when one's given,
+  rather than showing a separate raw-URL column. Whole rows edit at once — pencil opens
+  all four fields, confirm/cancel saves them together — same pattern as a roadmap step's
+  text, not per-cell editing. Lives in its own `ComponentsTable.js` component, alongside
+  `RoadmapTimeline.js`.
 - **Old data formats upgrade transparently on read** (see `normalizeProject` in the
   repository) rather than requiring manual migration — this has already happened three
   times (roadmap strings → objects, objects gaining a `todos` field, then a `completedDate`

@@ -26,7 +26,8 @@ project-dashboard/
 │   ├── EditableField.js           # plain text + pencil icon -> editable box + confirm/cancel
 │   ├── Fiducials.js               # small "+" corner marks (style detail, used on cards)
 │   ├── TraitPicker.js             # search/select trait widget (inline edit + compact filter)
-│   └── RoadmapTimeline.js         # roadmap steps + nested to-do lists, drag-to-reorder
+│   ├── RoadmapTimeline.js         # roadmap steps + nested to-do lists, drag-to-reorder
+│   └── ComponentsTable.js         # components + cost table (name, link, price, notes)
 ├── pages/
 │   ├── _app.js                    # loads global styles, wraps every page
 │   ├── index.js                   # dashboard: status tabs, trait filter, card grid
@@ -68,9 +69,10 @@ The only file allowed to call `fs.readFileSync` / `fs.writeFileSync`. Exports:
 - `getAllTraits()` — derives the known-traits list from every project's `traits` array
 
 It also runs `normalizeProject()` on every read, which transparently upgrades old data
-shapes (e.g. a roadmap step that predates the nested-to-do feature, or predates the
-`completedDate` field) so old projects don't break when the schema evolves. If you add a
-new field or change a shape, this is where the upgrade logic goes.
+shapes (e.g. a roadmap step that predates the nested-to-do feature or the `completedDate`
+field, or a component that predates the name/link/price/notes shape) so old projects don't
+break when the schema evolves. If you add a new field or change a shape, this is where the
+upgrade logic goes.
 
 ### `lib/projectFieldConfig.js` — status + field rules
 
@@ -113,6 +115,13 @@ repository directly — see below).
   a step becomes done (only if blank) and editable via the same pencil flow as the step
   text — this is what makes the roadmap double as a completed project's finished timeline,
   so there's no separate `timeline` field or component.
+- **`ComponentsTable`** renders `components` as a table (name, price, notes, plus an
+  edit/remove column) instead of the plain-text pattern every other list field uses. Price
+  is stored as a real number (or `null` if left blank) so it can be summed into a total row;
+  every other field on this table stays a string. A component's name is itself the link
+  (when one's set) rather than a separate URL column. Editing works on the whole row at
+  once — pencil turns all four cells into inputs, confirm/cancel saves or discards
+  together — rather than per-cell, since four separate pencils per row would be noisy.
 
 ### `styles/globals.css`
 

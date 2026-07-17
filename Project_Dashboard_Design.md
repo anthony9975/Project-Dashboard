@@ -60,6 +60,9 @@ Rough shape:
                          // and doubles as the finished timeline once "completed"
                          // each step: {id, text, status, completedDate, todos: [{id, text, status}]}
   components: [...],    // optional, mainly filled in by "active"
+                         // each item: {id, name, link, price, notes}
+                         // price is a real number (or null) — the one strictly-typed
+                         // field on an otherwise free-text project
   location: { type: "github" | "kicad" | ..., url },
   todos: [...], research: [...],
   archivedReason, blockers,
@@ -131,7 +134,28 @@ Every field on the project detail page — including the title — displays as p
 
 Traits and the roadmap (below) don't follow this exact pattern — they're rich widgets (a picker, a timeline) rather than plain text, so their own interactions apply immediately without a separate confirm step.
 
-### Roadmap timeline (UI pattern)
+### Components + costs table (UI pattern)
+
+Unlike every other list-style field (to-dos, research, timeline-era notes), components
+aren't a plain text box — they're a real table, since a component naturally has several
+distinct attributes rather than being one line of prose:
+
+- Columns: component name, price, notes, plus an edit/remove action column
+- A component's name is itself the clickable link when one's set (opens in a new tab) —
+  there's no separate raw-URL column, which would just clutter the table with long strings
+- Price is strictly numeric (or left blank/`null`), the one field on this table — and on
+  the project as a whole outside of dates — that isn't free text. That's specifically what
+  lets the table sum a running **total** row at the bottom whenever at least one component
+  has a price set
+- Editing works on the whole row at once, not per-cell: clicking the row's pencil turns
+  name/link/price/notes all into inputs together, and confirm/cancel saves or discards all
+  four as one unit. Four separate pencils per row would be noisy for what's usually a quick
+  edit
+- New components are added through a persistent 4-input row pinned below the table (name,
+  link, price, notes, then an "add" button) — the same "always-visible input, press Enter or
+  click add" shape as adding a roadmap step, just with more fields
+
+
 
 The roadmap is a vertical timeline, not the original plain "one step per line" text field:
 
@@ -200,6 +224,8 @@ Three structural neutrals (Paper, Ink, Line) plus one color per project status, 
 - New-idea capture page (title + one-line note only)
 - Project detail page — every field, including title, is plain text with a pencil to edit and confirm/cancel to save; no page-wide save button. Buttons to advance status, mark active projects completed/archived, or unarchive
 - Traits: search-and-select picker, multi-value, freeform vocabulary
+- Components + costs: structured table (name/link as one clickable field, numeric price,
+  notes, running total), whole-row editing, replacing the old plain-text list
 - Roadmap: vertical timeline, drag-to-reorder steps, 3-state status, nested per-step to-do lists with their own 3-state status, their own independent drag-to-reorder, collapse/expand, and the two auto-behaviors (auto-expand on in-progress, auto-complete on all-todos-done). Each step also has an editable, auto-stamped `completedDate` — the roadmap now doubles as the finished timeline once a project is completed, so the separate `timeline` field has been removed
 
 **Deferred on purpose:**

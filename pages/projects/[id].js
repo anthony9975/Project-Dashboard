@@ -5,6 +5,7 @@ import { STATUS_LABELS, fieldsFor, nextStatus } from '../../lib/projectFieldConf
 import TraitPicker from '../../components/TraitPicker';
 import EditableField from '../../components/EditableField';
 import RoadmapTimeline from '../../components/RoadmapTimeline';
+import ComponentsTable from '../../components/ComponentsTable';
 
 export async function getServerSideProps({ params }) {
   const project = getProject(params.id);
@@ -16,7 +17,6 @@ const LABELS = {
   note: 'One-line note',
   description: 'Description',
   vision: 'Vision',
-  components: 'Components + costs (one per line)',
   location: 'Location (repo, KiCad project, etc.)',
   todos: 'To-dos (one per line)',
   research: 'Research (one link/note per line)',
@@ -26,7 +26,7 @@ const LABELS = {
   nextSteps: 'Next steps',
 };
 
-const LIST_FIELDS = new Set(['components', 'todos', 'research']);
+const LIST_FIELDS = new Set(['todos', 'research']);
 
 // Each field saves itself independently now (see EditableField) — there's no page-wide
 // "Save changes" button anymore. Status changes are the one thing that still happen via
@@ -106,6 +106,14 @@ export default function ProjectDetail({ project: initialProject, allTraits }) {
             <RoadmapTimeline
               value={project.roadmap || []}
               onChange={(roadmap) => saveField('roadmap', roadmap)}
+            />
+          </div>
+        ) : f === 'components' ? (
+          <div className="field-block" key="components">
+            <div className="field-label">Components + costs</div>
+            <ComponentsTable
+              value={project.components || []}
+              onChange={(components) => saveField('components', components)}
             />
           </div>
         ) : (
