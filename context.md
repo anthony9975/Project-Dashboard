@@ -36,6 +36,12 @@ Single user, runs on one machine, no auth.
   auto-expands its to-dos when set to "in progress," and auto-completes once every to-do
   is done — but never auto-reverts, since manually marking a step done early is allowed
   and shouldn't get silently undone later.
+- **There's no separate top-level `todos` field anymore.** It used to sit alongside the
+  roadmap as its own general to-do list, which became a confusing duplicate once the
+  roadmap gained per-step to-do lists. Removed from `ACTIVE_FIELDS`, `blankProject`, and
+  the detail page — the roadmap's nested to-dos are the only to-do tracking now. (It was
+  confirmed empty across all existing projects before removal, so no migration was needed;
+  if that's ever not true for some future field removal, migrate the data or ask first.)
 - **Components + costs is a structured table, not free text.** Each row is
   `{id, name, link, price, notes}`. Price is strictly numeric (unlike every other
   list-style field, which stays free text) so it can be summed into a running total shown

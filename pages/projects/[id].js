@@ -18,7 +18,6 @@ const LABELS = {
   description: 'Description',
   vision: 'Vision',
   location: 'Location (repo, KiCad project, etc.)',
-  todos: 'To-dos (one per line)',
   research: 'Research (one link/note per line)',
   archivedReason: 'Why archived',
   blockers: 'Blockers',
@@ -26,7 +25,7 @@ const LABELS = {
   nextSteps: 'Next steps',
 };
 
-const LIST_FIELDS = new Set(['todos', 'research']);
+const LIST_FIELDS = new Set(['research']);
 
 // Each field saves itself independently now (see EditableField) — there's no page-wide
 // "Save changes" button anymore. Status changes are the one thing that still happen via

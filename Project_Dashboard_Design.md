@@ -64,13 +64,18 @@ Rough shape:
                          // price is a real number (or null) — the one strictly-typed
                          // field on an otherwise free-text project
   location: { type: "github" | "kicad" | ..., url },
-  todos: [...], research: [...],
+  research: [...],
   archivedReason, blockers,
   insights, nextSteps
 }
 ```
 
 Note that `description` is a single field, not separate brief/detailed versions — it just gets expanded in place once the project moves to Planned. All fields past `status` are optional — visibility is handled separately (see below), not by having separate schemas.
+
+There is no top-level `todos` field either — the roadmap's per-step to-do lists (below) are
+the only to-do tracking in the app. A separate project-wide to-do list used to exist
+alongside them; it was removed as a duplicate once the roadmap gained its own nested
+to-dos, rather than keeping two different "things to do" lists on the same page.
 
 There is no separate `timeline` field. A roadmap step's `completedDate` is auto-stamped with
 today's date the moment that step becomes "done" (whether by manually cycling its status or
@@ -93,7 +98,7 @@ Which fields are shown is determined by the project's current `status`, and is a
 | Expanded description, vision | | ✓ | ✓ | ✓ | ✓ |
 | Initial roadmap / approach | | ✓ | ✓ | ✓ | ✓ |
 | Components + costs, detailed roadmap | | optional | ✓ | ✓ | ✓ |
-| Location, to-dos, research | | | ✓ | ✓ | ✓ |
+| Location, research | | | ✓ | ✓ | ✓ |
 | Reason archived, blockers | | | | ✓ | |
 | Insights, next steps | | | | | ✓ |
 
@@ -136,7 +141,7 @@ Traits and the roadmap (below) don't follow this exact pattern — they're rich 
 
 ### Components + costs table (UI pattern)
 
-Unlike every other list-style field (to-dos, research, timeline-era notes), components
+Unlike every other list-style field (research, blockers, and the like), components
 aren't a plain text box — they're a real table, since a component naturally has several
 distinct attributes rather than being one line of prose:
 
