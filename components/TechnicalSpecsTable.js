@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import DragHandle from './DragHandle';
+import Fiducials from './Fiducials';
 
 function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -15,13 +16,21 @@ function draftFromSpec(spec) {
 
 // Freeform label -> multiple freeform values, e.g. "Languages" -> ["JavaScript", "Python"].
 // Unlike TraitPicker's values, these aren't a shared vocabulary across projects (a hardware
-// project's specs share almost no labels with a software project's), so there's no
+// project's specs share almost no vocabulary with a software project's), so there's no
 // autocomplete/dropdown here — just type a value, Enter or comma commits it as a chip.
+//
+// Visual treatment follows Technical-Specs-Table-Design.md (the "Circuit Blueprint" doc):
+// a header row, a card with hairline border + shadow + corner fiducials, a subtly dotted
+// background behind the spec rows only (not the header, not the add-row footer), and
+// "editable state" chips that split into value + divider + close per that doc. This is
+// currently the only component styled this way — the rest of the app hasn't had this pass
+// applied yet, by design (see context.md).
 //
 // Whole rows edit at once (pencil -> label input + chip editor -> confirm/cancel), same
 // pattern as ComponentsTable. Rows are drag-to-reorder, same pattern as RoadmapTimeline's
-// steps — dragging is disabled while a row is mid-edit so text selection in the inputs
-// doesn't fight the browser's native drag handling.
+// steps — dragging is disabled while a row is mid-edit. The persistent add-row starts
+// collapsed as a single clickable "+ add a technical spec" row and expands into the actual
+// inputs on click, rather than always showing the inputs like Components/Roadmap do.
 export default function TechnicalSpecsTable({ value, onChange }) {
   const [items, setItems] = useState(value || []);
   const draggedIndex = useRef(null);
@@ -31,8 +40,10 @@ export default function TechnicalSpecsTable({ value, onChange }) {
   const [draft, setDraft] = useState(blankDraft());
   const [draftValueText, setDraftValueText] = useState('');
 
+  const [addExpanded, setAddExpanded] = useState(false);
   const [newDraft, setNewDraft] = useState(blankDraft());
   const [newValueText, setNewValueText] = useState('');
+  const newLabelInputRef = useRef(null);
 
   useEffect(() => {
     if (!dragging) setItems(value || []);
@@ -77,6 +88,17 @@ export default function TechnicalSpecsTable({ value, onChange }) {
     setText('');
   }
 
+  function expandAddRow() {
+    setAddExpanded(true);
+    setTimeout(() => newLabelInputRef.current?.focus(), 0);
+  }
+
+  function collapseAddRow() {
+    setAddExpanded(false);
+    setNewDraft(blankDraft());
+    setNewValueText('');
+  }
+
   function addItem() {
     // Commit whatever's still sitting in the value box, same as pressing Enter would.
     // Without this, typing a value and clicking "add" without pressing Enter first silently
@@ -89,6 +111,8 @@ export default function TechnicalSpecsTable({ value, onChange }) {
     commit([...items, { id: makeId(), label, values }]);
     setNewDraft(blankDraft());
     setNewValueText('');
+    // Left expanded on purpose — adding several specs back-to-back is common, and the
+    // collapse (×) button lets you close it explicitly when you're done.
   }
 
   function handleDragStart(index) {
@@ -116,41 +140,53 @@ export default function TechnicalSpecsTable({ value, onChange }) {
   }
 
   return (
-    <div>
+    <div className="ts-card">
+      <Fiducials />
+
+      <div className="ts-header-row">
+        <div className="ts-spacer" />
+        <div className="ts-hcell ts-hcell-label">Spec</div>
+        <div className="ts-divider" />
+        <div className="ts-hcell ts-hcell-values">Values</div>
+        <div className="ts-header-actions-spacer" />
+      </div>
+
       {items.length > 0 && (
-        <div className="ts-table">
+        <div className="ts-rows">
           {items.map((spec, i) =>
             editingId === spec.id ? (
-              <div key={spec.id} className="ts-row">
-                <div className="ts-edit-row">
-                  <input
-                    className="ts-edit-label"
-                    value={draft.label}
-                    onChange={(e) => setDraft({ ...draft, label: e.target.value })}
-                    placeholder="Label (e.g. Languages)"
-                    autoFocus
-                  />
-                  <div className="ts-value-editor">
-                    {draft.values.length > 0 && (
-                      <div className="ts-chip-list">
-                        {draft.values.map((v, vi) => (
-                          <span
-                            key={vi}
-                            className="trait-chip trait-chip-removable"
-                            onClick={() =>
-                              setDraft({ ...draft, values: draft.values.filter((_, j) => j !== vi) })
-                            }
-                            title="Remove"
-                          >
-                            {v} <span aria-hidden="true">×</span>
-                          </span>
-                        ))}
-                      </div>
-                    )}
+              <div key={spec.id} className="ts-row ts-row-editing">
+                <div className="ts-edit-block">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span className="ts-spacer" />
                     <input
+                      className="ts-input-dashed ts-label-input"
+                      value={draft.label}
+                      onChange={(e) => setDraft({ ...draft, label: e.target.value })}
+                      placeholder="Label (e.g. Languages)"
+                      autoFocus
+                    />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginLeft: 22 }}>
+                    {draft.values.map((v, vi) => (
+                      <span key={vi} className="ts-chip-editable">
+                        <span className="ts-chip-editable-value">{v}</span>
+                        <span className="ts-chip-editable-divider" />
+                        <span
+                          className="ts-chip-editable-close"
+                          onClick={() => setDraft({ ...draft, values: draft.values.filter((_, j) => j !== vi) })}
+                          title="Remove"
+                        >
+                          ×
+                        </span>
+                      </span>
+                    ))}
+                    <input
+                      className="ts-input-dashed"
                       value={draftValueText}
                       onChange={(e) => setDraftValueText(e.target.value)}
                       placeholder="Add a value, Enter to add"
+                      style={{ minWidth: 160 }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ',') {
                           e.preventDefault();
@@ -164,7 +200,7 @@ export default function TechnicalSpecsTable({ value, onChange }) {
                       }}
                     />
                   </div>
-                  <div className="field-edit-actions">
+                  <div className="field-edit-actions" style={{ marginLeft: 22 }}>
                     <button type="button" className="field-confirm-btn" onClick={() => confirmEdit(spec.id)}>
                       ✓ save
                     </button>
@@ -184,73 +220,87 @@ export default function TechnicalSpecsTable({ value, onChange }) {
                 onDrop={handleDrop}
                 onDragEnd={handleDragEnd}
               >
-                <DragHandle className="ts-drag-handle" />
-                <span className="ts-label">{spec.label || '—'}</span>
-                <span className="ts-values">
+                <DragHandle />
+                <div className="ts-label">{spec.label || '—'}</div>
+                <div className="ts-divider" />
+                <div className="ts-values">
                   {(spec.values || []).map((v, vi) => (
-                    <span key={vi} className="trait-chip">
+                    <span key={vi} className="ts-chip">
                       {v}
                     </span>
                   ))}
-                </span>
-                <span className="ts-actions">
+                </div>
+                <div className="ts-actions">
                   <button type="button" className="edit-btn" onClick={() => startEdit(spec)} title="Edit">
                     ✎
                   </button>
                   <button type="button" className="edit-btn" onClick={() => removeItem(spec.id)} title="Remove">
                     ×
                   </button>
-                </span>
+                </div>
               </div>
             )
           )}
         </div>
       )}
 
-      <div className="ts-add-row">
-        <input
-          className="ts-edit-label"
-          value={newDraft.label}
-          onChange={(e) => setNewDraft({ ...newDraft, label: e.target.value })}
-          placeholder="Label (e.g. Languages)"
-        />
-        <div className="ts-value-editor">
-          {newDraft.values.length > 0 && (
-            <div className="ts-chip-list">
+      <div className="ts-addrow-section">
+        {addExpanded ? (
+          <div className="ts-addrow-expanded">
+            <span className="ts-spacer" />
+            <input
+              ref={newLabelInputRef}
+              className="ts-input-dashed ts-label-input"
+              value={newDraft.label}
+              onChange={(e) => setNewDraft({ ...newDraft, label: e.target.value })}
+              placeholder="Label (e.g. Languages)"
+            />
+            <div className="ts-divider" />
+            <div className="ts-addrow-values">
               {newDraft.values.map((v, vi) => (
-                <span
-                  key={vi}
-                  className="trait-chip trait-chip-removable"
-                  onClick={() =>
-                    setNewDraft({ ...newDraft, values: newDraft.values.filter((_, j) => j !== vi) })
-                  }
-                  title="Remove"
-                >
-                  {v} <span aria-hidden="true">×</span>
+                <span key={vi} className="ts-chip-editable">
+                  <span className="ts-chip-editable-value">{v}</span>
+                  <span className="ts-chip-editable-divider" />
+                  <span
+                    className="ts-chip-editable-close"
+                    onClick={() => setNewDraft({ ...newDraft, values: newDraft.values.filter((_, j) => j !== vi) })}
+                    title="Remove"
+                  >
+                    ×
+                  </span>
                 </span>
               ))}
+              <input
+                className="ts-input-dashed"
+                value={newValueText}
+                onChange={(e) => setNewValueText(e.target.value)}
+                placeholder="Add a value, Enter to add"
+                style={{ minWidth: 160, flex: 1 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    commitValue(
+                      newValueText,
+                      newDraft.values,
+                      (vals) => setNewDraft({ ...newDraft, values: vals }),
+                      setNewValueText
+                    );
+                  }
+                }}
+              />
             </div>
-          )}
-          <input
-            value={newValueText}
-            onChange={(e) => setNewValueText(e.target.value)}
-            placeholder="Add a value, Enter to add"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ',') {
-                e.preventDefault();
-                commitValue(
-                  newValueText,
-                  newDraft.values,
-                  (vals) => setNewDraft({ ...newDraft, values: vals }),
-                  setNewValueText
-                );
-              }
-            }}
-          />
-        </div>
-        <button type="button" className="btn" onClick={addItem}>
-          add
-        </button>
+            <button type="button" className="btn" onClick={addItem}>
+              add
+            </button>
+            <button type="button" className="ts-collapse-btn" onClick={collapseAddRow} title="Close">
+              ×
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="ts-addrow-collapsed" onClick={expandAddRow}>
+            <span aria-hidden="true">+</span> add a technical spec
+          </button>
+        )}
       </div>
     </div>
   );

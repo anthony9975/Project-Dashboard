@@ -85,3 +85,13 @@ Single user, runs on one machine, no auth.
 Light drafting/blueprint aesthetic — grid paper, hairline borders, small `+` corner marks
 (PCB fiducial nod) — because the project spans software, hardware, and digital design, not
 because "technical" has to mean dark mode. Palette and type are in the design doc.
+
+- **Technical specifications got its own bespoke visual treatment** ("Circuit Blueprint",
+  from `Technical-Specs-Table-Design.md`), applied to this component only — the rest of the
+  app hasn't had this pass yet, on purpose. It sits in its own elevated card (hairline
+  border, corner fiducials, subtle shadow) with a header row, a subtly dotted background
+  behind the spec rows specifically (not the header, not the add-row footer), 4px-radius
+  chips instead of the pill-shaped `.trait-chip` used elsewhere, and a split
+  value/divider/close style for chips while a row's being edited. The persistent add-row
+  starts collapsed as a single "+ add a technical spec" row and expands into inputs on
+  click — unlike Components/Roadmap, whose add-rows are always expanded.

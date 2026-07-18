@@ -663,33 +663,98 @@ textarea {
   gap: 8px;
 }
 
-.ts-table {
+/* Technical specifications — "Circuit Blueprint" treatment per Technical-Specs-Table-Design.md.
+   This is currently the only component styled this way; nothing else in the app has this
+   card/fiducial/dotted-background pass applied to it yet. */
+
+.ts-card {
+  position: relative;
+  background: #fff;
   border: 0.5px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  box-shadow: 0 4px 18px rgba(30, 39, 51, 0.08);
   overflow: hidden;
+}
+
+.ts-header-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: #fff;
+  border-bottom: 0.5px solid var(--line);
+}
+
+.ts-hcell {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--slate);
+}
+.ts-hcell-label {
+  width: 110px;
+  flex-shrink: 0;
+}
+.ts-hcell-values {
+  flex: 1;
+}
+
+.ts-spacer {
+  width: 10px;
+  flex-shrink: 0;
+}
+.ts-header-actions-spacer {
+  width: 58px;
+  flex-shrink: 0;
+}
+
+.ts-divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--line);
+  flex-shrink: 0;
+}
+
+/* Subtle dotted "canvas" texture — scoped to the spec rows only, not the header or the
+   add-row footer. Circles are set to cover well over half of each tile (62%) so adjacent
+   tiles' circles touch/overlap slightly rather than reading as isolated dots, per design
+   feedback — and the low opacity (0.75 white on a near-white base) keeps it subtle rather
+   than a bold pattern. */
+.ts-rows {
+  background-color: #f5f7fa;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.75) 62%, transparent 64%);
+  background-size: 22px 22px;
 }
 
 .ts-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  min-height: 56px;
+  padding: 0 14px;
+  gap: 12px;
   border-bottom: 0.5px solid var(--line);
 }
 .ts-row:last-child {
   border-bottom: none;
 }
+.ts-row-editing {
+  align-items: flex-start;
+  padding: 12px 14px;
+}
 
-.ts-drag-handle {
-  cursor: grab;
+.ts-edit-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 }
 
 .ts-label {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 12px;
   color: var(--slate);
-  min-width: 130px;
+  width: 110px;
   flex-shrink: 0;
 }
 
@@ -698,6 +763,7 @@ textarea {
   flex-wrap: wrap;
   gap: 6px;
   flex: 1;
+  padding: 12px 0;
 }
 
 .ts-actions {
@@ -706,37 +772,125 @@ textarea {
   flex-shrink: 0;
 }
 
-.ts-edit-row {
+/* Read-only chip: plain bordered rectangle, not a pill — per the doc's "Technical Chips"
+   spec, 4px radius rather than the fully-rounded .trait-chip used elsewhere. Kept as its
+   own class rather than reusing .trait-chip so TraitPicker elsewhere is unaffected. */
+.ts-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 0.5px solid var(--line);
+  border-radius: 4px;
+  padding: 3px 9px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--ink);
+  background: #fff;
+}
+
+/* "Editable state" chip — value + vertical divider + close, all inside one bordered
+   container, per the doc. Used only while a row (or the add-row) is being edited. */
+.ts-chip-editable {
+  display: inline-flex;
+  align-items: stretch;
+  border: 0.5px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--ink);
+  background: #fff;
+}
+.ts-chip-editable-value {
+  padding: 4px 9px;
+}
+.ts-chip-editable-divider {
+  width: 1px;
+  background: var(--line);
+}
+.ts-chip-editable-close {
+  padding: 4px 8px;
+  color: var(--clay);
+  cursor: pointer;
+}
+.ts-chip-editable-close:hover {
+  color: var(--circuit-blue);
+}
+
+/* Dashed border = "empty/add" affordance per the doc; solid circuit-blue on focus. Not
+   conditioned on whether the field actually has content — focus alone is enough signal. */
+.ts-input-dashed {
+  border: 1px dashed rgba(107, 118, 132, 0.4);
+  border-radius: 4px;
+  padding: 6px 9px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12.5px;
+  background: #fff;
+  color: var(--ink);
+}
+.ts-input-dashed::placeholder {
+  color: #9aa3af;
+}
+.ts-input-dashed:focus {
+  outline: none;
+  border: 1px solid var(--circuit-blue);
+}
+.ts-label-input {
+  max-width: 170px;
+}
+
+/* Add-row footer: flat (no dots), a shade lighter than the dotted rows section so it still
+   reads as a distinct, more "recessed" zone without competing with the texture above it. */
+.ts-addrow-section {
+  background: #edf0f4;
+}
+
+.ts-addrow-collapsed {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 8px;
   width: 100%;
+  padding: 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--circuit-blue);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.ts-addrow-collapsed:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 
-.ts-edit-label {
-  max-width: 260px;
-}
-
-.ts-value-editor {
+.ts-addrow-expanded {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.ts-chip-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.ts-add-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-top: 10px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
   flex-wrap: wrap;
 }
-.ts-add-row .ts-value-editor {
+.ts-addrow-values {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
   flex: 1;
-  min-width: 200px;
+  min-width: 160px;
+}
+
+.ts-collapse-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  border: 0.5px solid var(--line);
+  background: #fff;
+  color: var(--slate);
+  border-radius: 4px;
+  padding: 6px 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.ts-collapse-btn:hover {
+  color: var(--clay);
+  border-color: var(--clay);
 }
