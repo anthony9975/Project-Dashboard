@@ -21,13 +21,15 @@ project-dashboard/
 │       └── ...
 ├── lib/
 │   ├── projectFieldConfig.js      # status order, field visibility, status-advance rules
-│   └── projectRepository.js       # the ONLY file that touches the filesystem
+│   ├── projectRepository.js       # the ONLY file that touches the filesystem
+│   └── exportProject.js           # builds a project's Markdown export + triggers download
 ├── components/
 │   ├── EditableField.js           # plain text + pencil icon -> editable box + confirm/cancel
 │   ├── Fiducials.js               # small "+" corner marks (style detail, used on cards)
 │   ├── TraitPicker.js             # search/select trait widget (inline edit + compact filter)
 │   ├── RoadmapTimeline.js         # roadmap steps + nested to-do lists, drag-to-reorder
-│   └── ComponentsTable.js         # components + cost table (name, link, price, notes)
+│   ├── ComponentsTable.js         # components + cost table (name, link, price, notes)
+│   └── ExportModal.js             # checklist modal for exporting a project to Markdown
 ├── pages/
 │   ├── _app.js                    # loads global styles, wraps every page
 │   ├── index.js                   # dashboard: status tabs, trait filter, card grid
@@ -81,6 +83,23 @@ Defines `STATUS_ORDER`, which fields are visible at each status (`fieldsFor(stat
 `nextStatus()` for the linear idea → planned → active progression. If you're wondering "why
 does this field show up here but not there," this file has the answer.
 
+### `lib/exportProject.js` — Markdown export logic
+
+Pure functions, no React and no filesystem access — this is the only `lib/` file that isn't
+part of the four-layer data path, since export never touches `data/` at all. It works
+entirely off the project object the detail page already has in memory.
+
+- `buildProjectMarkdown(project, selectedFields)` — returns the export as a plain string
+  (kept separate from the download step so it's testable/reusable on its own)
+- `downloadProjectMarkdown(project, selectedFields)` — calls the above, then triggers the
+  browser download via a Blob + object URL
+
+`selectedFields` drives which sections get included and in what order; each field has its
+own renderer (e.g. the roadmap renderer walks steps and their nested to-dos, the components
+renderer emits a Markdown table with a computed total row). Deliberately kept separate from
+`ExportModal.js` so this generation logic could be reused by a future export entry point
+(e.g. a dashboard-level bulk export) without duplicating it.
+
 ### `pages/api/` — API routes
 
 Thin. Each route calls the repository and returns JSON — no business logic lives here
@@ -98,7 +117,10 @@ repository directly — see below).
 - **`projects/[id].js`** is the detail page. It also loads via `getServerSideProps`, then
   every field save goes through a single `saveField(key, value)` helper that PATCHes
   `/api/projects/[id]` and updates local state with the server's response — this is why
-  editing one field never disturbs any other field's value.
+  editing one field never disturbs any other field's value. It also owns the "Export"
+  button next to the status tag (hidden at "idea") and the `showExport` boolean that
+  controls whether `ExportModal` is rendered — export never goes through `saveField` or the
+  API, since it doesn't write anything.
 
 ### `components/` — reusable UI pieces
 
@@ -122,6 +144,13 @@ repository directly — see below).
   (when one's set) rather than a separate URL column. Editing works on the whole row at
   once — pencil turns all four cells into inputs, confirm/cancel saves or discards
   together — rather than per-cell, since four separate pencils per row would be noisy.
+- **`ExportModal`** is the checklist overlay opened by the detail page's "Export" button.
+  Its checkbox list is literally the same `fields` array the detail page already computes
+  from `fieldsFor(status)` (plus `traits` when shown) — not a second, separately-maintained
+  visibility list — so the export options can never fall out of sync with what the page
+  actually displays for that status. Everything's checked by default, selection isn't
+  remembered between opens, and confirming hands the selected field keys off to
+  `lib/exportProject.js` to actually build and download the file.
 
 ### `styles/globals.css`
 
@@ -148,4 +177,7 @@ detail page:
    reflects what's actually on disk.
 
 Every other interaction in the app (editing a field, changing a project's status, adding a
-trait) follows this same round-trip shape.
+trait) follows this same round-trip shape — with one exception: exporting a project never
+leaves the browser. `ExportModal` and `lib/exportProject.js` work entirely off the project
+object already sitting in the page's state, so there's no API call and nothing written back
+to `data/`.

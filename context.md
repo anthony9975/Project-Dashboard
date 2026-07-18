@@ -75,6 +75,10 @@ Single user, runs on one machine, no auth.
   closure and would intermittently overwrite a just-saved reorder with the old order (this
   was the "to-do reordering sometimes doesn't save" bug). Any future draggable-inside-
   draggable UI needs the same treatment.
+- **Markdown export, one project at a time**, from a button on the detail page (hidden at
+  "idea"). The export checklist reuses the same status-driven `fields` array the page
+  itself renders from, so it can never fall out of sync with what's actually visible. Full
+  reasoning in `Project_Dashboard_Design.md` under "Export to Markdown."
 
 ## Visual identity, in one line
 

@@ -6,6 +6,7 @@ import TraitPicker from '../../components/TraitPicker';
 import EditableField from '../../components/EditableField';
 import RoadmapTimeline from '../../components/RoadmapTimeline';
 import ComponentsTable from '../../components/ComponentsTable';
+import ExportModal from '../../components/ExportModal';
 
 export async function getServerSideProps({ params }) {
   const project = getProject(params.id);
@@ -17,12 +18,15 @@ const LABELS = {
   note: 'One-line note',
   description: 'Description',
   vision: 'Vision',
+  roadmap: 'Roadmap',
+  components: 'Components + costs',
   location: 'Location (repo, KiCad project, etc.)',
   research: 'Research (one link/note per line)',
   archivedReason: 'Why archived',
   blockers: 'Blockers',
   insights: 'Insights',
   nextSteps: 'Next steps',
+  traits: 'Traits',
 };
 
 const LIST_FIELDS = new Set(['research']);
@@ -36,12 +40,19 @@ const LIST_FIELDS = new Set(['research']);
 // completedDate, so it doubles as the finished timeline once a project reaches "completed" —
 // fieldsFor('completed') simply doesn't include 'timeline' anymore, so nothing extra is
 // needed here to hide it.
+//
+// Export: the modal reuses `fields` (below) as its checkbox list, so what you can export
+// always matches what's actually visible on the page for this project's status — there's
+// no separate visibility list to keep in sync. Hidden entirely at "idea" (see
+// Project_Dashboard_Design.md — nothing's really been said yet at that stage).
 export default function ProjectDetail({ project: initialProject, allTraits }) {
   const [project, setProject] = useState(initialProject);
   const [statusSaving, setStatusSaving] = useState(false);
+  const [showExport, setShowExport] = useState(false);
 
   const fields = fieldsFor(project.status).filter((f) => f !== 'title' && f !== 'traits');
   const showTraits = fieldsFor(project.status).includes('traits');
+  const canExport = project.status !== 'idea';
 
   async function saveField(key, value) {
     const res = await fetch(`/api/projects/${project.id}`, {
@@ -82,9 +93,14 @@ export default function ProjectDetail({ project: initialProject, allTraits }) {
           headingDisplay
           onSave={(v) => saveField('title', v)}
         />
-        <span className={`tag tag-${project.status}`} style={{ marginTop: 6 }}>
-          {project.status}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+          {canExport && (
+            <button type="button" className="btn" onClick={() => setShowExport(true)}>
+              Export
+            </button>
+          )}
+          <span className={`tag tag-${project.status}`}>{project.status}</span>
+        </div>
       </div>
 
       {showTraits && (
@@ -151,6 +167,16 @@ export default function ProjectDetail({ project: initialProject, allTraits }) {
           </button>
         )}
       </div>
+
+      {showExport && (
+        <ExportModal
+          project={project}
+          fields={fields}
+          showTraits={showTraits}
+          labels={LABELS}
+          onClose={() => setShowExport(false)}
+        />
+      )}
     </div>
   );
 }

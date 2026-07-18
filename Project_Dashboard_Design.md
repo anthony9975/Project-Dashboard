@@ -160,7 +160,34 @@ distinct attributes rather than being one line of prose:
   link, price, notes, then an "add" button) — the same "always-visible input, press Enter or
   click add" shape as adding a roadmap step, just with more fields
 
+### Export to Markdown (UI pattern)
+ 
+Projects can be exported one at a time as a `.md` file, from a button on the detail page —
+the intent being to hand a project's contents to a portfolio site or an LLM without manually
+retyping it.
+ 
+- **Single-project only.** No bulk/dashboard-level export yet — deferred, not ruled out (see
+  Status below).
+- **Hidden at "idea."** Nothing's really been committed to paper yet at that stage, so the
+  button only appears from "planned" onward.
+- **A modal, opened by the "Export" button**, lists every field currently visible on the
+  detail page as a checkbox, all checked by default. Selection isn't remembered between
+  opens — it always resets to all-checked.
+- **The checkbox list is the same `fields` array the detail page already computes** from
+  `fieldsFor(status)` (plus `traits` when shown), not a second, separately-maintained
+  visibility list. This means the export options can never silently drift out of sync with
+  what the page actually displays for that status.
+- **Whole fields only, not sub-fields.** A field is either fully included or excluded — e.g.
+  the roadmap comes in with every step's status, completed date, and nested to-dos, or it
+  doesn't come in at all. Partial inclusion (e.g. step text without to-dos) was considered
+  and rejected as unnecessary complexity for a first version.
+- **Entirely client-side.** The page already holds the full project object, so generation
+  and download happen in the browser via a Blob + object URL — no new API route.
+- **Generation logic lives in `lib/exportProject.js`, separate from the modal component**
+  (`components/ExportModal.js`), specifically so the Markdown-building logic can be reused
+  by a future export entry point (e.g. a dashboard bulk-export) without duplicating it.
 
+### Roadmap
 
 The roadmap is a vertical timeline, not the original plain "one step per line" text field:
 
@@ -232,12 +259,16 @@ Three structural neutrals (Paper, Ink, Line) plus one color per project status, 
 - Components + costs: structured table (name/link as one clickable field, numeric price,
   notes, running total), whole-row editing, replacing the old plain-text list
 - Roadmap: vertical timeline, drag-to-reorder steps, 3-state status, nested per-step to-do lists with their own 3-state status, their own independent drag-to-reorder, collapse/expand, and the two auto-behaviors (auto-expand on in-progress, auto-complete on all-todos-done). Each step also has an editable, auto-stamped `completedDate` — the roadmap now doubles as the finished timeline once a project is completed, so the separate `timeline` field has been removed
+- Export to Markdown: single-project export from the detail page, field checklist driven
+  by the same status-based visibility as the page itself
 
 **Deferred on purpose:**
 - Gating (requirement data exists in `ADVANCE_REQUIREMENTS`, not enforced yet)
 - Linking related projects together in the UI (`links` field exists on the data model, no UI yet)
 - Grouping/categorizing traits, if the list gets large
 - Swapping JSON files for a database, if the project graph ever outgrows them (`lib/projectRepository.js` is the only file that should need to change)
+- Bulk/dashboard-level export (multiple projects at once) — single-project export was
+  built first since it's the more immediate need
 
 ## Important notes
 
