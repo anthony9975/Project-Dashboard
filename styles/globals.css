@@ -377,13 +377,6 @@ textarea {
   flex-shrink: 0;
 }
 
-.rm-drag-handle {
-  font-size: 12px;
-  color: var(--slate);
-  cursor: grab;
-  line-height: 1;
-}
-
 .rm-vnode {
   width: 24px;
   height: 24px;
@@ -445,11 +438,6 @@ textarea {
   padding: 4px 0;
 }
 
-.rm-todo-drag-handle {
-  font-size: 10px;
-  margin-top: 0;
-}
-
 .rm-todo-node {
   width: 18px;
   height: 18px;
@@ -485,6 +473,15 @@ textarea {
   font-size: 12px;
   color: var(--ink);
   line-height: 1.5;
+}
+
+.drag-handle-icon {
+  color: var(--slate);
+  flex-shrink: 0;
+  display: block;
+}
+.drag-handle-icon:hover {
+  color: var(--circuit-blue);
 }
 
 .ct-table {
@@ -664,4 +661,82 @@ textarea {
 .modal-select-actions {
   display: flex;
   gap: 8px;
+}
+
+.ts-table {
+  border: 0.5px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.ts-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 0.5px solid var(--line);
+}
+.ts-row:last-child {
+  border-bottom: none;
+}
+
+.ts-drag-handle {
+  cursor: grab;
+}
+
+.ts-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--slate);
+  min-width: 130px;
+  flex-shrink: 0;
+}
+
+.ts-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.ts-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.ts-edit-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.ts-edit-label {
+  max-width: 260px;
+}
+
+.ts-value-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ts-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ts-add-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.ts-add-row .ts-value-editor {
+  flex: 1;
+  min-width: 200px;
 }

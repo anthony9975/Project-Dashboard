@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import DragHandle from './DragHandle';
 
 const STATUS_ORDER = ['not_started', 'in_progress', 'done'];
 
@@ -321,9 +322,7 @@ function StepRow({
     >
       <div className="rm-gutter">
         {!isLast && <div className="rm-vline" />}
-        <span className="rm-drag-handle" title="Drag to reorder">
-          ⠿
-        </span>
+        <DragHandle />
         <button
           type="button"
           className={`rm-vnode status-${step.status}`}
@@ -443,9 +442,7 @@ function TodoRow({ todo, onDragStart, onDragOver, onDrop, onDragEnd, onCycleStat
       onDrop={onDrop}
       onDragEnd={onDragEnd}
     >
-      <span className="rm-drag-handle rm-todo-drag-handle" title="Drag to reorder">
-        ⠿
-      </span>
+      <DragHandle size={8} className="rm-todo-drag-handle" />
       <button
         type="button"
         className={`rm-todo-node status-${todo.status}`}

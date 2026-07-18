@@ -6,6 +6,7 @@ import TraitPicker from '../../components/TraitPicker';
 import EditableField from '../../components/EditableField';
 import RoadmapTimeline from '../../components/RoadmapTimeline';
 import ComponentsTable from '../../components/ComponentsTable';
+import TechnicalSpecsTable from '../../components/TechnicalSpecsTable';
 import ExportModal from '../../components/ExportModal';
 
 export async function getServerSideProps({ params }) {
@@ -18,6 +19,7 @@ const LABELS = {
   note: 'One-line note',
   description: 'Description',
   vision: 'Vision',
+  technicalSpecs: 'Technical specifications',
   roadmap: 'Roadmap',
   components: 'Components + costs',
   location: 'Location (repo, KiCad project, etc.)',
@@ -115,7 +117,15 @@ export default function ProjectDetail({ project: initialProject, allTraits }) {
       )}
 
       {fields.map((f) =>
-        f === 'roadmap' ? (
+        f === 'technicalSpecs' ? (
+          <div className="field-block" key="technicalSpecs">
+            <div className="field-label">Technical specifications</div>
+            <TechnicalSpecsTable
+              value={project.technicalSpecs || []}
+              onChange={(technicalSpecs) => saveField('technicalSpecs', technicalSpecs)}
+            />
+          </div>
+        ) : f === 'roadmap' ? (
           <div className="field-block" key="roadmap">
             <div className="field-label">Roadmap</div>
             <RoadmapTimeline

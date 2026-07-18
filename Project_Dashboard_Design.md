@@ -56,6 +56,9 @@ Rough shape:
   links: [{ toId, relationship }],   // optional even at "idea"
   description,   // starts as a one-liner, expanded in place at "planned"
   vision,
+  technicalSpecs: [...],  // freeform label -> multiple freeform values, e.g.
+                           // {id, label: "Languages", values: ["JavaScript", "Python"]}
+                           // visible from "planned" onward, alongside the roadmap
   roadmap: [...],       // initial approach at "planned", fleshed out at "active",
                          // and doubles as the finished timeline once "completed"
                          // each step: {id, text, status, completedDate, todos: [{id, text, status}]}
@@ -96,6 +99,7 @@ Which fields are shown is determined by the project's current `status`, and is a
 | Name, one-line description | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Traits, links to other projects | optional | ✓ | ✓ | ✓ | ✓ |
 | Expanded description, vision | | ✓ | ✓ | ✓ | ✓ |
+| Technical specifications | | ✓ | ✓ | ✓ | ✓ |
 | Initial roadmap / approach | | ✓ | ✓ | ✓ | ✓ |
 | Components + costs, detailed roadmap | | optional | ✓ | ✓ | ✓ |
 | Location, research | | | ✓ | ✓ | ✓ |
@@ -218,6 +222,36 @@ information into a second time.
 
 **CSS gotcha worth remembering:** step dots (`.rm-vnode`) and to-do dots (`.rm-todo-node`) share status coloring via generic `.status-in_progress` / `.status-done` modifier classes rather than duplicating colors per node type. Since a shared modifier and a node's own base class have equal CSS specificity, whichever is defined *later* in the stylesheet wins — so these shared modifiers have to stay below both `.rm-vnode` and `.rm-todo-node` in `globals.css`, not above them. (This broke once already: the to-do dots rendered with the right symbol but no color, because the shared modifiers were declared before `.rm-todo-node`'s own neutral styles.) The same risk applies to any future node type that reuses these modifiers.
 
+### Technical specifications (UI pattern)
+ 
+A flexible key-to-many-values list, deliberately not a fixed schema per project type —
+what a software project needs to record (languages, frameworks, key libraries) shares
+almost no vocabulary with what a hardware or digital-logic project needs (MCU, voltage,
+clock speed), so no predefined field set could cover both without either being too sparse
+or too cluttered for any one project.
+ 
+- **Each entry is `{id, label, values}`.** Both the label and every value are freeform
+  text — there's no fixed vocabulary and no autocomplete, unlike `traits`. Deliberately
+  *not* shared across projects: one project's "Languages: JavaScript, Python" has no
+  bearing on what label or values make sense for the next project.
+- **A label can hold multiple values.** This was the one hard requirement going in — e.g.
+  a software project's "Languages" spec should hold every language in use, not force one
+  row per language. Values render and edit as a small chip list under their label.
+- **Flat list, no categories.** Grouping specs under a "Software" / "Hardware" heading was
+  considered and deliberately skipped — the label itself already carries that context
+  (e.g. "MCU" self-identifies as hardware), so a separate grouping field would be
+  redundant complexity for a first version.
+- **Whole-row editing**, same pattern as `ComponentsTable`: pencil turns the row into a
+  label input + chip editor, confirm/cancel saves or discards both together. New entries
+  go through the same persistent add-row-at-the-bottom shape used by Components and
+  Roadmap steps.
+- **Drag-to-reorder**, same pattern as `RoadmapTimeline`'s steps — order is meaningful
+  (e.g. leading with the most important specs) but not otherwise structured.
+- **Visible from "planned" onward**, positioned *before* the roadmap in field order.
+  Reasoning: picking a stack/spec is typically a decision made before planning build
+  steps, so the field order mirrors the order you'd actually think through a project —
+  `description → vision → technical specs → roadmap`.
+
 ## Visual style
 
 **Direction:** a light drafting/blueprint aesthetic — grid paper, hairline strokes, and small corner registration marks (echoing PCB fiducials and technical drawing conventions), on a pale cool-white background. Technical because it borrows the vernacular of the tools actually used (KiCad, GitHub), not because it's dark.
@@ -261,6 +295,8 @@ Three structural neutrals (Paper, Ink, Line) plus one color per project status, 
 - Roadmap: vertical timeline, drag-to-reorder steps, 3-state status, nested per-step to-do lists with their own 3-state status, their own independent drag-to-reorder, collapse/expand, and the two auto-behaviors (auto-expand on in-progress, auto-complete on all-todos-done). Each step also has an editable, auto-stamped `completedDate` — the roadmap now doubles as the finished timeline once a project is completed, so the separate `timeline` field has been removed
 - Export to Markdown: single-project export from the detail page, field checklist driven
   by the same status-based visibility as the page itself
+- Technical specifications: freeform label -> multiple-values list, drag-to-reorder,
+visible from "planned" onward (same visibility tier as the roadmap)
 
 **Deferred on purpose:**
 - Gating (requirement data exists in `ADVANCE_REQUIREMENTS`, not enforced yet)

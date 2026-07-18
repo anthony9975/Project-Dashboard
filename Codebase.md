@@ -29,6 +29,7 @@ project-dashboard/
 │   ├── TraitPicker.js             # search/select trait widget (inline edit + compact filter)
 │   ├── RoadmapTimeline.js         # roadmap steps + nested to-do lists, drag-to-reorder
 │   ├── ComponentsTable.js         # components + cost table (name, link, price, notes)
+│   ├── TechnicalSpecsTable.js     # label -> multi-value spec list, drag-to-reorder
 │   └── ExportModal.js             # checklist modal for exporting a project to Markdown
 ├── pages/
 │   ├── _app.js                    # loads global styles, wraps every page
@@ -72,9 +73,9 @@ The only file allowed to call `fs.readFileSync` / `fs.writeFileSync`. Exports:
 
 It also runs `normalizeProject()` on every read, which transparently upgrades old data
 shapes (e.g. a roadmap step that predates the nested-to-do feature or the `completedDate`
-field, or a component that predates the name/link/price/notes shape) so old projects don't
-break when the schema evolves. If you add a new field or change a shape, this is where the
-upgrade logic goes.
+field, a component that predates the name/link/price/notes shape, or a project that
+predates `technicalSpecs` entirely) so old projects don't break when the schema evolves.
+If you add a new field or change a shape, this is where the upgrade logic goes.
 
 ### `lib/projectFieldConfig.js` — status + field rules
 
@@ -96,7 +97,8 @@ entirely off the project object the detail page already has in memory.
 
 `selectedFields` drives which sections get included and in what order; each field has its
 own renderer (e.g. the roadmap renderer walks steps and their nested to-dos, the components
-renderer emits a Markdown table with a computed total row). Deliberately kept separate from
+renderer emits a Markdown table with a computed total row, the technical-specs renderer
+emits one bullet per spec with its values comma-joined). Deliberately kept separate from
 `ExportModal.js` so this generation logic could be reused by a future export entry point
 (e.g. a dashboard-level bulk export) without duplicating it.
 
@@ -144,6 +146,12 @@ repository directly — see below).
   (when one's set) rather than a separate URL column. Editing works on the whole row at
   once — pencil turns all four cells into inputs, confirm/cancel saves or discards
   together — rather than per-cell, since four separate pencils per row would be noisy.
+- **`TechnicalSpecsTable`** renders `technicalSpecs` as a flat, drag-to-reorder list of
+  freeform `label -> values` entries — e.g. `Languages: JavaScript, Python`. A label can
+  hold multiple values (rendered/edited as a small chip list, same chip styling as
+  `TraitPicker` but without the shared-vocabulary autocomplete, since specs aren't shared
+  across projects). Whole-row editing, same pencil/confirm/cancel shape as
+  `ComponentsTable`; dragging is disabled on a row while it's mid-edit.
 - **`ExportModal`** is the checklist overlay opened by the detail page's "Export" button.
   Its checkbox list is literally the same `fields` array the detail page already computes
   from `fieldsFor(status)` (plus `traits` when shown) — not a second, separately-maintained
@@ -177,7 +185,7 @@ detail page:
    reflects what's actually on disk.
 
 Every other interaction in the app (editing a field, changing a project's status, adding a
-trait) follows this same round-trip shape — with one exception: exporting a project never
-leaves the browser. `ExportModal` and `lib/exportProject.js` work entirely off the project
-object already sitting in the page's state, so there's no API call and nothing written back
-to `data/`.
+trait, reordering technical specs) follows this same round-trip shape — with one exception:
+exporting a project never leaves the browser. `ExportModal` and `lib/exportProject.js` work
+entirely off the project object already sitting in the page's state, so there's no API call
+and nothing written back to `data/`.
