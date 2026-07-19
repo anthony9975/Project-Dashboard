@@ -31,7 +31,11 @@ function draftFromSpec(spec) {
 // steps — dragging is disabled while a row is mid-edit. The persistent add-row starts
 // collapsed as a single clickable "+ add a technical spec" row and expands into the actual
 // inputs on click, rather than always showing the inputs like Components/Roadmap do.
-export default function TechnicalSpecsTable({ value, onChange }) {
+//
+// `locked`: hides row edit/remove actions and the add-row, and disables dragging, leaving
+// the labels/values/fiducial card intact as a read-only record. See isLocked() in
+// projectFieldConfig.js.
+export default function TechnicalSpecsTable({ value, onChange, locked = false }) {
   const [items, setItems] = useState(value || []);
   const draggedIndex = useRef(null);
   const [dragging, setDragging] = useState(false);
@@ -154,7 +158,7 @@ export default function TechnicalSpecsTable({ value, onChange }) {
       {items.length > 0 && (
         <div className="ts-rows">
           {items.map((spec, i) =>
-            editingId === spec.id ? (
+            !locked && editingId === spec.id ? (
               <div key={spec.id} className="ts-row ts-row-editing">
                 <div className="ts-edit-block">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -214,13 +218,13 @@ export default function TechnicalSpecsTable({ value, onChange }) {
               <div
                 key={spec.id}
                 className="ts-row"
-                draggable
-                onDragStart={() => handleDragStart(i)}
-                onDragOver={(e) => handleDragOver(e, i)}
-                onDrop={handleDrop}
-                onDragEnd={handleDragEnd}
+                draggable={!locked}
+                onDragStart={() => !locked && handleDragStart(i)}
+                onDragOver={(e) => !locked && handleDragOver(e, i)}
+                onDrop={() => !locked && handleDrop()}
+                onDragEnd={() => !locked && handleDragEnd()}
               >
-                <DragHandle />
+                {!locked && <DragHandle />}
                 <div className="ts-label">{spec.label || '—'}</div>
                 <div className="ts-divider" />
                 <div className="ts-values">
@@ -230,78 +234,82 @@ export default function TechnicalSpecsTable({ value, onChange }) {
                     </span>
                   ))}
                 </div>
-                <div className="ts-actions">
-                  <button type="button" className="edit-btn" onClick={() => startEdit(spec)} title="Edit">
-                    ✎
-                  </button>
-                  <button type="button" className="edit-btn" onClick={() => removeItem(spec.id)} title="Remove">
-                    ×
-                  </button>
-                </div>
+                {!locked && (
+                  <div className="ts-actions">
+                    <button type="button" className="edit-btn" onClick={() => startEdit(spec)} title="Edit">
+                      ✎
+                    </button>
+                    <button type="button" className="edit-btn" onClick={() => removeItem(spec.id)} title="Remove">
+                      ×
+                    </button>
+                  </div>
+                )}
               </div>
             )
           )}
         </div>
       )}
 
-      <div className="ts-addrow-section">
-        {addExpanded ? (
-          <div className="ts-addrow-expanded">
-            <span className="ts-spacer" />
-            <input
-              ref={newLabelInputRef}
-              className="ts-input-dashed ts-label-input"
-              value={newDraft.label}
-              onChange={(e) => setNewDraft({ ...newDraft, label: e.target.value })}
-              placeholder="Label (e.g. Languages)"
-            />
-            <div className="ts-divider" />
-            <div className="ts-addrow-values">
-              {newDraft.values.map((v, vi) => (
-                <span key={vi} className="ts-chip-editable">
-                  <span className="ts-chip-editable-value">{v}</span>
-                  <span className="ts-chip-editable-divider" />
-                  <span
-                    className="ts-chip-editable-close"
-                    onClick={() => setNewDraft({ ...newDraft, values: newDraft.values.filter((_, j) => j !== vi) })}
-                    title="Remove"
-                  >
-                    ×
-                  </span>
-                </span>
-              ))}
+      {!locked && (
+        <div className="ts-addrow-section">
+          {addExpanded ? (
+            <div className="ts-addrow-expanded">
+              <span className="ts-spacer" />
               <input
-                className="ts-input-dashed"
-                value={newValueText}
-                onChange={(e) => setNewValueText(e.target.value)}
-                placeholder="Add a value, Enter to add"
-                style={{ minWidth: 160, flex: 1 }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ',') {
-                    e.preventDefault();
-                    commitValue(
-                      newValueText,
-                      newDraft.values,
-                      (vals) => setNewDraft({ ...newDraft, values: vals }),
-                      setNewValueText
-                    );
-                  }
-                }}
+                ref={newLabelInputRef}
+                className="ts-input-dashed ts-label-input"
+                value={newDraft.label}
+                onChange={(e) => setNewDraft({ ...newDraft, label: e.target.value })}
+                placeholder="Label (e.g. Languages)"
               />
+              <div className="ts-divider" />
+              <div className="ts-addrow-values">
+                {newDraft.values.map((v, vi) => (
+                  <span key={vi} className="ts-chip-editable">
+                    <span className="ts-chip-editable-value">{v}</span>
+                    <span className="ts-chip-editable-divider" />
+                    <span
+                      className="ts-chip-editable-close"
+                      onClick={() => setNewDraft({ ...newDraft, values: newDraft.values.filter((_, j) => j !== vi) })}
+                      title="Remove"
+                    >
+                      ×
+                    </span>
+                  </span>
+                ))}
+                <input
+                  className="ts-input-dashed"
+                  value={newValueText}
+                  onChange={(e) => setNewValueText(e.target.value)}
+                  placeholder="Add a value, Enter to add"
+                  style={{ minWidth: 160, flex: 1 }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ',') {
+                      e.preventDefault();
+                      commitValue(
+                        newValueText,
+                        newDraft.values,
+                        (vals) => setNewDraft({ ...newDraft, values: vals }),
+                        setNewValueText
+                      );
+                    }
+                  }}
+                />
+              </div>
+              <button type="button" className="btn" onClick={addItem}>
+                add
+              </button>
+              <button type="button" className="ts-collapse-btn" onClick={collapseAddRow} title="Close">
+                ×
+              </button>
             </div>
-            <button type="button" className="btn" onClick={addItem}>
-              add
+          ) : (
+            <button type="button" className="ts-addrow-collapsed" onClick={expandAddRow}>
+              <span aria-hidden="true">+</span> add a technical spec
             </button>
-            <button type="button" className="ts-collapse-btn" onClick={collapseAddRow} title="Close">
-              ×
-            </button>
-          </div>
-        ) : (
-          <button type="button" className="ts-addrow-collapsed" onClick={expandAddRow}>
-            <span aria-hidden="true">+</span> add a technical spec
-          </button>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

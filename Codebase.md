@@ -80,9 +80,11 @@ If you add a new field or change a shape, this is where the upgrade logic goes.
 ### `lib/projectFieldConfig.js` — status + field rules
 
 Not data access — this is pure configuration, imported by both API routes and pages.
-Defines `STATUS_ORDER`, which fields are visible at each status (`fieldsFor(status)`), and
-`nextStatus()` for the linear idea → planned → active progression. If you're wondering "why
-does this field show up here but not there," this file has the answer.
+Defines `STATUS_ORDER`, which fields are visible at each status (`fieldsFor(status)`),
+`nextStatus()` for the linear idea → planned → active progression, and `isLocked(status,
+field)` for whether a "completed" project's fields should be locked from editing (true for
+everything except `insights` and `nextSteps`). If you're wondering "why does this field
+show up here but not there" or "why can/can't I edit this," this file has the answer.
 
 ### `lib/exportProject.js` — Markdown export logic
 
@@ -132,6 +134,13 @@ repository directly — see below).
   visible, used on the detail page, can create new traits) and `compact` (collapsed behind
   a button, used as the dashboard filter, can't create new traits — only pick existing
   ones). Same component, same underlying logic, different presentation.
+- **`locked` prop convention:** `EditableField`, `TraitPicker` (inline variant only),
+  `RoadmapTimeline`, `ComponentsTable`, and `TechnicalSpecsTable` all accept a `locked`
+  boolean. When true, every edit affordance (pencils, add-rows, drag handles, remove
+  buttons) is omitted from render entirely rather than disabled — read display is
+  unaffected. The detail page is the only caller; it derives the value from
+  `isLocked(project.status, field)` in `projectFieldConfig.js` rather than any component
+  checking `project.status` itself.
 - **`RoadmapTimeline`** is the most involved component: drag-to-reorder steps, a nested
   `StepRow` per step containing its own drag-to-reorder `TodoRow` list, and the two
   auto-behaviors (auto-expand on in-progress, auto-complete on all-to-dos-done) described

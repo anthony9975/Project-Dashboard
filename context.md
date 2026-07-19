@@ -79,6 +79,32 @@ Single user, runs on one machine, no auth.
   "idea"). The export checklist reuses the same status-driven `fields` array the page
   itself renders from, so it can never fall out of sync with what's actually visible. Full
   reasoning in `Project_Dashboard_Design.md` under "Export to Markdown."
+- **`insights` moved from completed-only into `ACTIVE_FIELDS`** so it's available to write
+  down while a project is actually being worked on, not just after the fact. It now carries
+  forward into "archived" and "completed" automatically, same as every other
+  `ACTIVE_FIELDS` entry. `nextSteps` stayed completed-only — it's inherently a look-forward
+  field that only makes sense once a project is actually finished.
+- **A "completed" project locks every field**, to preserve it as a finished record —
+  clicking "Mark completed" now asks for confirmation first, since it's no longer a
+  reversible-feeling single click. The two exceptions are `insights` and `nextSteps`, which
+  stay editable even after completion, since reflections tend to keep evolving after a
+  project wraps up. Locking hides edit affordances entirely (pencils, add-rows, drag
+  handles) rather than disabling them — a completed project should read as a clean,
+  finished record, not a form with greyed-out controls. Roadmap status dots are the one
+  exception to "hide the control": they stay visible with their current color/checkmark
+  (so the roadmap still reads as a timeline) but stop responding to clicks. Done steps/
+  to-dos also stop rendering with strikethrough text once locked — useful as a "this is
+  behind you" cue while active, but just adds noise on a record meant to stay fully
+  readable once finished.
+- **A completed project can move back to "active"** via a "Move back to active" button
+  (mirroring "Unarchive"), which lifts the lock everywhere again. This is the intended path
+  if something needs correcting after completion, rather than editing a "finished" record
+  in place.
+- **The locking rule lives in one place**: `isLocked(status, field)` in
+  `projectFieldConfig.js`. Whole-widget fields (traits, technicalSpecs, roadmap,
+  components) call it with just `status`; individual `EditableField` instances pass their
+  own field key so the `insights`/`nextSteps` exception applies automatically. No component
+  re-derives the rule itself.
 
 ## Visual identity, in one line
 

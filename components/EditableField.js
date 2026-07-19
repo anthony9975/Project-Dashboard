@@ -3,6 +3,10 @@ import { useState } from 'react';
 // Read-only text by default with a small pencil icon. Clicking it swaps the field into an
 // editable box; a confirm button saves just that field (calling onSave), a cancel button
 // discards the draft. Saving snaps it back to read-only display.
+//
+// `locked`: when true, the pencil icon is never rendered — since editing can only ever be
+// triggered by clicking that button, the field is permanently stuck in read-only display.
+// Used for fields on a "completed" project (see isLocked() in projectFieldConfig.js).
 export default function EditableField({
   label,
   value,
@@ -11,6 +15,7 @@ export default function EditableField({
   onSave,
   multiline = true,
   headingDisplay = false,
+  locked = false,
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -47,11 +52,11 @@ export default function EditableField({
     ? value
     : '—';
 
-  const editBtn = (
+  const editBtn = !locked ? (
     <button type="button" className="edit-btn" onClick={startEdit} title={`Edit ${label}`}>
       ✎
     </button>
-  );
+  ) : null;
 
   if (headingDisplay) {
     return (

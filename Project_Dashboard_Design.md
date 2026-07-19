@@ -103,12 +103,19 @@ Which fields are shown is determined by the project's current `status`, and is a
 | Initial roadmap / approach | | ✓ | ✓ | ✓ | ✓ |
 | Components + costs, detailed roadmap | | optional | ✓ | ✓ | ✓ |
 | Location, research | | | ✓ | ✓ | ✓ |
+| Insights | | | ✓ | ✓ | ✓ |
 | Reason archived, blockers | | | | ✓ | |
-| Insights, next steps | | | | | ✓ |
+| Next steps | | | | | ✓ |
 
 The roadmap (with its per-step dates) is already visible from Planned onward and simply
 carries forward as the finished timeline at Completed — it isn't a separate row above
 because it's not a separate field.
+
+Insights is available from Active onward (not completed-only) so it can be written down
+while a project is actually being worked on, rather than reconstructed after the fact. It
+carries forward into Archived and Completed automatically, same as every other field
+introduced at Active. Next steps stays Completed-only, since "what would I build on this
+next" only makes sense once a project is actually finished.
 
 **Implementation note:** keep this mapping in one config file (e.g. `projectFieldConfig.js`) rather than scattering `if (status === ...)` checks across page components. Each page reads from this config to decide what to render. Adjusting what's visible at a given stage later means editing one file, not several components.
 
@@ -120,6 +127,36 @@ Since the field-visibility config already defines what's expected at each stage,
 - **Planned → Active:** requires at least an initial roadmap/approach
 
 This doesn't need to be built now, but the groundwork (the config-driven field model) makes it a small addition later rather than a redesign.
+
+### Locking a completed project
+
+Once a project is marked "completed," every field locks to preserve it as a finished
+record — no more edits, reorders, or additions. This applies to plain text fields, traits,
+technical specifications, the roadmap (including its nested to-dos), and the components
+table alike.
+
+**Two fields stay editable even when locked: Insights and Next steps.** Reflections on a
+project tend to keep evolving after it's technically done, so those two are the exception
+rather than the rule.
+
+- **Marking a project completed asks for confirmation first** (a simple browser confirm
+  dialog), since the action now locks the project rather than just moving a status tag —
+  unlike every other status transition, which stays a single click.
+- **Locked fields hide their edit affordances entirely** rather than showing them disabled
+  — no pencils, no add-rows, no drag handles. A completed project should read as a clean,
+  finished document, not a form full of greyed-out controls.
+- **Roadmap status dots are the one exception to "hide the control."** They stay visible
+  with their current color and checkmark (so the roadmap still reads as a timeline of what
+  happened) but stop responding to clicks. Expand/collapse on a step's to-do list also
+  stays interactive when locked, since it's a view toggle, not a data change.
+- **"Move back to active"** is the escape hatch: a button on a completed project's detail
+  page (mirroring "Unarchive") that returns it to "active" and lifts the lock everywhere.
+  This is the intended path if something needs correcting after completion — editing a
+  "finished" record in place isn't supported by design.
+- **Implementation note:** the lock rule lives in exactly one place, `isLocked(status,
+  field)` in `projectFieldConfig.js`, the same file that already owns status-driven field
+  visibility. Every component that can be locked takes a `locked` prop rather than
+  re-deriving the rule itself.
 
 ### Assumption
 
@@ -297,6 +334,11 @@ Three structural neutrals (Paper, Ink, Line) plus one color per project status, 
   by the same status-based visibility as the page itself
 - Technical specifications: freeform label -> multiple-values list, drag-to-reorder,
 visible from "planned" onward (same visibility tier as the roadmap)
+- Insights moved from completed-only to visible from "active" onward, so it can be
+  filled in while a project is actively being worked on
+- Completed projects lock every field except Insights and Next steps; "Mark completed"
+  now confirms first, and a "Move back to active" button on completed projects lifts the
+  lock again
 
 **Deferred on purpose:**
 - Gating (requirement data exists in `ADVANCE_REQUIREMENTS`, not enforced yet)

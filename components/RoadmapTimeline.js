@@ -61,7 +61,13 @@ function withStatus(step, newStatus) {
 //   roadmap into its finished timeline — no separate timeline field needed.
 // - Expand/collapse state is page-local, not saved — it's recomputed on load from whether
 //   the step is in progress, so it doesn't need its own persisted field.
-export default function RoadmapTimeline({ value, onChange }) {
+//
+// `locked`: disables every mutation (drag reorder, status cycling, editing, add/remove —
+// for both steps and their nested to-dos). Status dots stay visible with their current
+// color/checkmark so the roadmap still reads as a finished timeline, they just stop
+// responding to clicks. Expand/collapse is left interactive even when locked since it's
+// purely a view toggle, not a data change. See isLocked() in projectFieldConfig.js.
+export default function RoadmapTimeline({ value, onChange, locked = false }) {
   const [items, setItems] = useState(value || []);
   const draggedIndex = useRef(null);
   const [dragging, setDragging] = useState(false);
@@ -198,6 +204,7 @@ export default function RoadmapTimeline({ value, onChange }) {
           step={step}
           isLast={i === items.length - 1}
           expanded={!!expanded[step.id]}
+          locked={locked}
           onToggleExpanded={() => toggleExpanded(step.id)}
           onDragStart={() => handleDragStart(i)}
           onDragOver={(e) => handleDragOver(e, i)}
@@ -214,17 +221,19 @@ export default function RoadmapTimeline({ value, onChange }) {
         />
       ))}
 
-      <div style={{ display: 'flex', gap: 6, marginTop: items.length > 0 ? 12 : 0 }}>
-        <input
-          value={newStepText}
-          onChange={(e) => setNewStepText(e.target.value)}
-          placeholder="Add a step…"
-          onKeyDown={(e) => e.key === 'Enter' && addStep()}
-        />
-        <button type="button" className="btn" onClick={addStep}>
-          add
-        </button>
-      </div>
+      {!locked && (
+        <div style={{ display: 'flex', gap: 6, marginTop: items.length > 0 ? 12 : 0 }}>
+          <input
+            value={newStepText}
+            onChange={(e) => setNewStepText(e.target.value)}
+            placeholder="Add a step…"
+            onKeyDown={(e) => e.key === 'Enter' && addStep()}
+          />
+          <button type="button" className="btn" onClick={addStep}>
+            add
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -233,6 +242,7 @@ function StepRow({
   step,
   isLast,
   expanded,
+  locked,
   onToggleExpanded,
   onDragStart,
   onDragOver,
@@ -314,27 +324,28 @@ function StepRow({
   return (
     <div
       className="rm-vstep"
-      draggable
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-      onDragEnd={onDragEnd}
+      draggable={!locked}
+      onDragStart={locked ? undefined : onDragStart}
+      onDragOver={locked ? undefined : onDragOver}
+      onDrop={locked ? undefined : onDrop}
+      onDragEnd={locked ? undefined : onDragEnd}
     >
       <div className="rm-gutter">
         {!isLast && <div className="rm-vline" />}
-        <DragHandle />
+        {!locked && <DragHandle />}
         <button
           type="button"
           className={`rm-vnode status-${step.status}`}
-          onClick={onCycleStatus}
-          title="Click to change status"
+          onClick={locked ? undefined : onCycleStatus}
+          title={locked ? undefined : 'Click to change status'}
+          style={locked ? { cursor: 'default' } : undefined}
         >
           {step.status === 'done' ? '✓' : ''}
         </button>
       </div>
 
       <div className="rm-content">
-        {editing ? (
+        {!locked && editing ? (
           <div>
             <input value={draft} onChange={(e) => setDraft(e.target.value)} autoFocus />
             <div className="field-label" style={{ marginTop: 8 }}>
@@ -353,7 +364,7 @@ function StepRow({
         ) : (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span className={`rm-vlabel${step.status === 'done' ? ' rm-done-text' : ''}`}>{step.text}</span>
+              <span className={`rm-vlabel${step.status === 'done' && !locked ? ' rm-done-text' : ''}`}>{step.text}</span>
               {step.completedDate && <span className="rm-step-date">{formatDate(step.completedDate)}</span>}
             </div>
             <span style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
@@ -365,12 +376,16 @@ function StepRow({
               >
                 {expanded ? '▾' : '▸'}
               </button>
-              <button type="button" className="edit-btn" onClick={startEdit} title="Edit step">
-                ✎
-              </button>
-              <button type="button" className="edit-btn" onClick={onRemove} title="Remove step">
-                ×
-              </button>
+              {!locked && (
+                <>
+                  <button type="button" className="edit-btn" onClick={startEdit} title="Edit step">
+                    ✎
+                  </button>
+                  <button type="button" className="edit-btn" onClick={onRemove} title="Remove step">
+                    ×
+                  </button>
+                </>
+              )}
             </span>
           </div>
         )}
@@ -381,6 +396,7 @@ function StepRow({
               <TodoRow
                 key={todo.id}
                 todo={todo}
+                locked={locked}
                 onDragStart={(e) => handleTodoDragStart(e, i)}
                 onDragOver={(e) => handleTodoDragOver(e, i)}
                 onDrop={handleTodoDrop}
@@ -390,29 +406,31 @@ function StepRow({
                 onRemove={() => onRemoveTodo(todo.id)}
               />
             ))}
-            <div style={{ display: 'flex', gap: 6, marginTop: localTodos.length > 0 ? 8 : 0 }}>
-              <input
-                value={newTodoText}
-                onChange={(e) => setNewTodoText(e.target.value)}
-                placeholder="Add a to-do…"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+            {!locked && (
+              <div style={{ display: 'flex', gap: 6, marginTop: localTodos.length > 0 ? 8 : 0 }}>
+                <input
+                  value={newTodoText}
+                  onChange={(e) => setNewTodoText(e.target.value)}
+                  placeholder="Add a to-do…"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      onAddTodo(newTodoText);
+                      setNewTodoText('');
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => {
                     onAddTodo(newTodoText);
                     setNewTodoText('');
-                  }
-                }}
-              />
-              <button
-                type="button"
-                className="btn"
-                onClick={() => {
-                  onAddTodo(newTodoText);
-                  setNewTodoText('');
-                }}
-              >
-                add
-              </button>
-            </div>
+                  }}
+                >
+                  add
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -420,7 +438,7 @@ function StepRow({
   );
 }
 
-function TodoRow({ todo, onDragStart, onDragOver, onDrop, onDragEnd, onCycleStatus, onEditText, onRemove }) {
+function TodoRow({ todo, locked, onDragStart, onDragOver, onDrop, onDragEnd, onCycleStatus, onEditText, onRemove }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(todo.text);
 
@@ -436,22 +454,23 @@ function TodoRow({ todo, onDragStart, onDragOver, onDrop, onDragEnd, onCycleStat
   return (
     <div
       className="rm-todo-row"
-      draggable
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-      onDragEnd={onDragEnd}
+      draggable={!locked}
+      onDragStart={locked ? undefined : onDragStart}
+      onDragOver={locked ? undefined : onDragOver}
+      onDrop={locked ? undefined : onDrop}
+      onDragEnd={locked ? undefined : onDragEnd}
     >
-      <DragHandle size={8} className="rm-todo-drag-handle" />
+      {!locked && <DragHandle size={8} className="rm-todo-drag-handle" />}
       <button
         type="button"
         className={`rm-todo-node status-${todo.status}`}
-        onClick={onCycleStatus}
-        title="Click to change status"
+        onClick={locked ? undefined : onCycleStatus}
+        title={locked ? undefined : 'Click to change status'}
+        style={locked ? { cursor: 'default' } : undefined}
       >
         {todo.status === 'done' ? '✓' : ''}
       </button>
-      {editing ? (
+      {!locked && editing ? (
         <div style={{ flex: 1 }}>
           <input value={draft} onChange={(e) => setDraft(e.target.value)} autoFocus />
           <div className="field-edit-actions">
@@ -465,15 +484,17 @@ function TodoRow({ todo, onDragStart, onDragOver, onDrop, onDragEnd, onCycleStat
         </div>
       ) : (
         <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-          <span className={`rm-todo-label${todo.status === 'done' ? ' rm-done-text' : ''}`}>{todo.text}</span>
-          <span style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-            <button type="button" className="edit-btn" onClick={startEdit} title="Edit to-do">
-              ✎
-            </button>
-            <button type="button" className="edit-btn" onClick={onRemove} title="Remove to-do">
-              ×
-            </button>
-          </span>
+          <span className={`rm-todo-label${todo.status === 'done' && !locked ? ' rm-done-text' : ''}`}>{todo.text}</span>
+          {!locked && (
+            <span style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+              <button type="button" className="edit-btn" onClick={startEdit} title="Edit to-do">
+                ✎
+              </button>
+              <button type="button" className="edit-btn" onClick={onRemove} title="Remove to-do">
+                ×
+              </button>
+            </span>
+          )}
         </div>
       )}
     </div>

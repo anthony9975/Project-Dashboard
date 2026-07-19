@@ -26,7 +26,11 @@ function draftFromItem(item) {
 // running total — unlike every other list-style field in the app, which stays free text.
 // Whole rows edit at once (pencil -> one row of 4 inputs -> confirm/cancel), same pattern
 // as a roadmap step's text, rather than per-cell editing.
-export default function ComponentsTable({ value, onChange }) {
+//
+// `locked`: hides the edit/remove column and the add-row entirely, leaving just the table
+// (name/link, price, notes, total) as a read-only record. See isLocked() in
+// projectFieldConfig.js.
+export default function ComponentsTable({ value, onChange, locked = false }) {
   const items = value || [];
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState(blankDraft());
@@ -87,12 +91,12 @@ export default function ComponentsTable({ value, onChange }) {
               <th style={{ width: '32%' }}>Component</th>
               <th style={{ width: '16%' }}>Price</th>
               <th>Notes</th>
-              <th style={{ width: 64 }} />
+              {!locked && <th style={{ width: 64 }} />}
             </tr>
           </thead>
           <tbody>
             {items.map((item) =>
-              editingId === item.id ? (
+              !locked && editingId === item.id ? (
                 <tr key={item.id}>
                   <td colSpan={4}>
                     <div className="ct-edit-row">
@@ -148,14 +152,16 @@ export default function ComponentsTable({ value, onChange }) {
                   </td>
                   <td className="ct-price">{formatPrice(item.price)}</td>
                   <td className="ct-notes">{item.notes}</td>
-                  <td className="ct-actions">
-                    <button type="button" className="edit-btn" onClick={() => startEdit(item)} title="Edit">
-                      ✎
-                    </button>
-                    <button type="button" className="edit-btn" onClick={() => removeItem(item.id)} title="Remove">
-                      ×
-                    </button>
-                  </td>
+                  {!locked && (
+                    <td className="ct-actions">
+                      <button type="button" className="edit-btn" onClick={() => startEdit(item)} title="Edit">
+                        ✎
+                      </button>
+                      <button type="button" className="edit-btn" onClick={() => removeItem(item.id)} title="Remove">
+                        ×
+                      </button>
+                    </td>
+                  )}
                 </tr>
               )
             )}
@@ -163,49 +169,51 @@ export default function ComponentsTable({ value, onChange }) {
               <tr className="ct-total-row">
                 <td>Total</td>
                 <td className="ct-price">{formatPrice(total)}</td>
-                <td colSpan={2} />
+                <td colSpan={locked ? 1 : 2} />
               </tr>
             )}
           </tbody>
         </table>
       )}
 
-      <div className="ct-add-row">
-        <input
-          className="ct-add-name"
-          value={newDraft.name}
-          onChange={(e) => setNewDraft({ ...newDraft, name: e.target.value })}
-          placeholder="Component name"
-          onKeyDown={(e) => e.key === 'Enter' && addItem()}
-        />
-        <input
-          className="ct-add-link"
-          value={newDraft.link}
-          onChange={(e) => setNewDraft({ ...newDraft, link: e.target.value })}
-          placeholder="Link (optional)"
-          onKeyDown={(e) => e.key === 'Enter' && addItem()}
-        />
-        <input
-          className="ct-add-price"
-          type="number"
-          step="0.01"
-          min="0"
-          value={newDraft.price}
-          onChange={(e) => setNewDraft({ ...newDraft, price: e.target.value })}
-          placeholder="Price"
-          onKeyDown={(e) => e.key === 'Enter' && addItem()}
-        />
-        <input
-          className="ct-add-notes"
-          value={newDraft.notes}
-          onChange={(e) => setNewDraft({ ...newDraft, notes: e.target.value })}
-          placeholder="Notes (optional)"
-          onKeyDown={(e) => e.key === 'Enter' && addItem()}
-        />
-        <button type="button" className="btn" onClick={addItem}>
-          add
-        </button>
-      </div>
+      {!locked && (
+        <div className="ct-add-row">
+          <input
+            className="ct-add-name"
+            value={newDraft.name}
+            onChange={(e) => setNewDraft({ ...newDraft, name: e.target.value })}
+            placeholder="Component name"
+            onKeyDown={(e) => e.key === 'Enter' && addItem()}
+          />
+          <input
+            className="ct-add-link"
+            value={newDraft.link}
+            onChange={(e) => setNewDraft({ ...newDraft, link: e.target.value })}
+            placeholder="Link (optional)"
+            onKeyDown={(e) => e.key === 'Enter' && addItem()}
+          />
+          <input
+            className="ct-add-price"
+            type="number"
+            step="0.01"
+            min="0"
+            value={newDraft.price}
+            onChange={(e) => setNewDraft({ ...newDraft, price: e.target.value })}
+            placeholder="Price"
+            onKeyDown={(e) => e.key === 'Enter' && addItem()}
+          />
+          <input
+            className="ct-add-notes"
+            value={newDraft.notes}
+            onChange={(e) => setNewDraft({ ...newDraft, notes: e.target.value })}
+            placeholder="Notes (optional)"
+            onKeyDown={(e) => e.key === 'Enter' && addItem()}
+          />
+          <button type="button" className="btn" onClick={addItem}>
+            add
+          </button>
+        </div>
+      )}
     </div>
   );
 }

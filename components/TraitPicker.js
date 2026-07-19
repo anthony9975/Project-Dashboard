@@ -11,6 +11,10 @@ import { useEffect, useRef, useState } from 'react';
 // traits that already exist, so `allowAdd` should be left false for this variant.
 // Pass `matchMode` ("any" | "all") + `onMatchModeChange` to show an any/all toggle —
 // it only renders once 2+ traits are selected, since the choice is meaningless before that.
+//
+// `locked` (inline variant only — the dashboard filter is never locked): renders chips as
+// plain, non-removable, and hides the search input/dropdown entirely, so traits are visible
+// but untouchable on a completed project. See isLocked() in projectFieldConfig.js.
 export default function TraitPicker({
   value,
   onChange,
@@ -19,6 +23,7 @@ export default function TraitPicker({
   variant = 'inline',
   matchMode,
   onMatchModeChange,
+  locked = false,
 }) {
   const [text, setText] = useState('');
   const [open, setOpen] = useState(false);
@@ -52,16 +57,22 @@ export default function TraitPicker({
     onChange(value.filter((t) => t !== trait));
   }
 
-  const chips = value.map((trait) => (
-    <span
-      key={trait}
-      className="trait-chip trait-chip-removable"
-      onClick={() => removeTrait(trait)}
-      title="Remove"
-    >
-      {trait} <span aria-hidden="true">×</span>
-    </span>
-  ));
+  const chips = value.map((trait) =>
+    locked ? (
+      <span key={trait} className="trait-chip">
+        {trait}
+      </span>
+    ) : (
+      <span
+        key={trait}
+        className="trait-chip trait-chip-removable"
+        onClick={() => removeTrait(trait)}
+        title="Remove"
+      >
+        {trait} <span aria-hidden="true">×</span>
+      </span>
+    )
+  );
 
   if (variant === 'compact') {
     return (
@@ -130,18 +141,20 @@ export default function TraitPicker({
   return (
     <div ref={wrapRef} style={{ position: 'relative' }}>
       {value.length > 0 && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>{chips}</div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: locked ? 0 : 8 }}>{chips}</div>
       )}
-      <input
-        value={text}
-        onChange={(e) => {
-          setText(e.target.value);
-          setOpen(true);
-        }}
-        onFocus={() => setOpen(true)}
-        placeholder="Search or add a trait…"
-      />
-      {open && (suggestions.length > 0 || canAddNew) && (
+      {!locked && (
+        <input
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          placeholder="Search or add a trait…"
+        />
+      )}
+      {!locked && open && (suggestions.length > 0 || canAddNew) && (
         <div className="trait-dropdown">
           {suggestions.map((trait) => (
             <div key={trait} className="trait-option" onMouseDown={() => selectTrait(trait)}>
