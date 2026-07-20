@@ -56,9 +56,13 @@ Rough shape:
   links: [{ toId, relationship }],   // optional even at "idea"
   description,   // starts as a one-liner, expanded in place at "planned"
   vision,
-  technicalSpecs: [...],  // freeform label -> multiple freeform values, e.g.
-                           // {id, label: "Languages", values: ["JavaScript", "Python"]}
-                           // visible from "planned" onward, alongside the roadmap
+  diagram: { originalFilename, uploadedAt } | null,  // a single uploaded, self-contained
+                         // interactive HTML diagram (e.g. a draw.io export) — the file
+                         // itself lives at data/diagrams/{id}.html, not inline in this
+                         // JSON; this is just the reference to it. Visible from "planned"
+                         // onward, alongside the roadmap. Was a freeform label -> values
+                         // table ("technicalSpecs") before the redesign — see "Technical
+                         // diagram" below.
   roadmap: [...],       // initial approach at "planned", fleshed out at "active",
                          // and doubles as the finished timeline once "completed"
                          // each step: {id, text, status, completedDate, todos: [{id, text, status}]}
@@ -99,7 +103,7 @@ Which fields are shown is determined by the project's current `status`, and is a
 | Name, one-line description | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Traits, links to other projects | optional | ✓ | ✓ | ✓ | ✓ |
 | Expanded description, vision | | ✓ | ✓ | ✓ | ✓ |
-| Technical specifications | | ✓ | ✓ | ✓ | ✓ |
+| Technical specifications (diagram) | | ✓ | ✓ | ✓ | ✓ |
 | Initial roadmap / approach | | ✓ | ✓ | ✓ | ✓ |
 | Components + costs, detailed roadmap | | optional | ✓ | ✓ | ✓ |
 | Location, research | | | ✓ | ✓ | ✓ |
@@ -259,35 +263,60 @@ information into a second time.
 
 **CSS gotcha worth remembering:** step dots (`.rm-vnode`) and to-do dots (`.rm-todo-node`) share status coloring via generic `.status-in_progress` / `.status-done` modifier classes rather than duplicating colors per node type. Since a shared modifier and a node's own base class have equal CSS specificity, whichever is defined *later* in the stylesheet wins — so these shared modifiers have to stay below both `.rm-vnode` and `.rm-todo-node` in `globals.css`, not above them. (This broke once already: the to-do dots rendered with the right symbol but no color, because the shared modifiers were declared before `.rm-todo-node`'s own neutral styles.) The same risk applies to any future node type that reuses these modifiers.
 
-### Technical specifications (UI pattern)
- 
-A flexible key-to-many-values list, deliberately not a fixed schema per project type —
-what a software project needs to record (languages, frameworks, key libraries) shares
-almost no vocabulary with what a hardware or digital-logic project needs (MCU, voltage,
-clock speed), so no predefined field set could cover both without either being too sparse
-or too cluttered for any one project.
- 
-- **Each entry is `{id, label, values}`.** Both the label and every value are freeform
-  text — there's no fixed vocabulary and no autocomplete, unlike `traits`. Deliberately
-  *not* shared across projects: one project's "Languages: JavaScript, Python" has no
-  bearing on what label or values make sense for the next project.
-- **A label can hold multiple values.** This was the one hard requirement going in — e.g.
-  a software project's "Languages" spec should hold every language in use, not force one
-  row per language. Values render and edit as a small chip list under their label.
-- **Flat list, no categories.** Grouping specs under a "Software" / "Hardware" heading was
-  considered and deliberately skipped — the label itself already carries that context
-  (e.g. "MCU" self-identifies as hardware), so a separate grouping field would be
-  redundant complexity for a first version.
-- **Whole-row editing**, same pattern as `ComponentsTable`: pencil turns the row into a
-  label input + chip editor, confirm/cancel saves or discards both together. New entries
-  go through the same persistent add-row-at-the-bottom shape used by Components and
-  Roadmap steps.
-- **Drag-to-reorder**, same pattern as `RoadmapTimeline`'s steps — order is meaningful
-  (e.g. leading with the most important specs) but not otherwise structured.
-- **Visible from "planned" onward**, positioned *before* the roadmap in field order.
-  Reasoning: picking a stack/spec is typically a decision made before planning build
-  steps, so the field order mirrors the order you'd actually think through a project —
-  `description → vision → technical specs → roadmap`.
+### Technical diagram (UI pattern)
+
+Originally a flexible freeform label -> multiple-values table (languages, MCU, voltage,
+etc.) — chosen because a software project's spec vocabulary shares almost nothing with a
+hardware project's, so no fixed field set could cover both without being sparse or
+cluttered. That flexibility need is still exactly right, but the table format didn't
+actually deliver on it — it's still just rows of text. **Redesigned to a single uploaded,
+self-contained interactive HTML diagram instead** — draw whatever you need (a system
+architecture, a wiring diagram, a software module map, anything) in whatever tool you
+like, export it as one interactive file, and drop it in. This trades a rigid, if flexible,
+data structure for genuine creative freedom, at the cost of the content becoming opaque to
+the app (it's a file, not queryable data).
+
+- **Tool-agnostic by design.** The app accepts any self-contained interactive HTML
+  export — it doesn't require or specially detect any particular tool. **draw.io
+  (diagrams.net)** is the recommended path: free, open-source, and its File → Export as →
+  HTML produces a genuinely interactive file (pan/zoom, layers/tags toggling, clickable
+  links and tooltips on shapes), with built-in multi-page support if one diagram needs
+  several "pages" (e.g. one per subsystem). **Caveat worth knowing:** by default that HTML
+  export loads its rendering engine from draw.io's own servers, which needs an internet
+  connection to display — draw.io also ships a self-hostable `viewer-static.min.js` for
+  fully offline use, which is the more fitting choice for a local-first tool. This isn't
+  enforced by the app itself; it's a note for however the diagram actually gets made.
+- **One diagram per project**, stored as `data/diagrams/{id}.html` — a sibling to the
+  `data/projects/{id}.json` files, not inlined into the project's own JSON (an interactive
+  HTML export can run from tens of KB to several MB with embedded fonts/scripts, which
+  doesn't belong stuffed next to a project's title and notes). The project JSON only holds
+  a lightweight reference: `diagram: {originalFilename, uploadedAt} | null`.
+- **Rendered in an isolated `<iframe>`**, sourced from a dedicated API route
+  (`/api/projects/{id}/diagram`) rather than injected into the page directly — this keeps
+  the uploaded file's own scripts and styles fully separate from the rest of the app,
+  rather than dealing with re-running scripts by hand via `dangerouslySetInnerHTML`.
+- **Upload, replace, remove** — same locked-on-completed convention as every other widget
+  (see "Locking a completed project"): controls disappear entirely once a project is
+  completed, but the diagram itself keeps rendering and stays interactive to *view*.
+- **15MB upload cap**, and the app only checks the file extension (`.html`/`.htm`) — no
+  deeper validation of what's inside, consistent with this being a single-user local tool
+  with no one else's content to guard against.
+- **Deferred, on purpose: a static image for Markdown export.** An interactive HTML file
+  can't be embedded in a `.md` file, and there's currently no static-image fallback either
+  — the export just notes a diagram is attached and points back to the live page. The
+  options considered: embed a static image (e.g. also exported from the same source) as a
+  base64 data URI, which keeps the export a single portable file but bloats it; or switch
+  export to a `.zip` with an `assets/` folder, which keeps files clean but changes the
+  download from "one `.md` file" to "a bundle." Not decided yet — revisit when it matters.
+- **Position unchanged**: still visible from "planned" onward, still positioned before the
+  roadmap (`description → vision → technical specs → roadmap`) — same reasoning as before,
+  picking your stack/approach typically precedes planning build steps. The display label
+  stays "Technical specifications," since it's the same conceptual slot in the project
+  flow; only the field key (`diagram`) and the content shape changed.
+- **No migration from the old table.** The old `technicalSpecs` field is dropped on next
+  read of any project that still has it (see `normalizeDiagram()` in
+  `projectRepository.js`) — there was no real project data in it yet, so this was treated
+  as a clean removal rather than something needing a data migration.
 
 ## Visual style
 
@@ -332,8 +361,10 @@ Three structural neutrals (Paper, Ink, Line) plus one color per project status, 
 - Roadmap: vertical timeline, drag-to-reorder steps, 3-state status, nested per-step to-do lists with their own 3-state status, their own independent drag-to-reorder, collapse/expand, and the two auto-behaviors (auto-expand on in-progress, auto-complete on all-todos-done). Each step also has an editable, auto-stamped `completedDate` — the roadmap now doubles as the finished timeline once a project is completed, so the separate `timeline` field has been removed
 - Export to Markdown: single-project export from the detail page, field checklist driven
   by the same status-based visibility as the page itself
-- Technical specifications: freeform label -> multiple-values list, drag-to-reorder,
-visible from "planned" onward (same visibility tier as the roadmap)
+- Technical specifications: single uploaded, self-contained interactive HTML diagram
+  (tool-agnostic, draw.io recommended) rendered in an isolated iframe, visible from
+  "planned" onward (same visibility tier as the roadmap) — replaced the earlier freeform
+  label -> multiple-values table
 - Insights moved from completed-only to visible from "active" onward, so it can be
   filled in while a project is actively being worked on
 - Completed projects lock every field except Insights and Next steps; "Mark completed"
@@ -341,6 +372,9 @@ visible from "planned" onward (same visibility tier as the roadmap)
   lock again
 
 **Deferred on purpose:**
+- A static-image fallback for the diagram in Markdown export (currently the export just
+  notes a diagram is attached) — base64 data URI vs. switching export to a `.zip` bundle,
+  not decided yet
 - Gating (requirement data exists in `ADVANCE_REQUIREMENTS`, not enforced yet)
 - Linking related projects together in the UI (`links` field exists on the data model, no UI yet)
 - Grouping/categorizing traits, if the list gets large

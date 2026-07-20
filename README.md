@@ -24,19 +24,41 @@ start clean.
   `lib/projectFieldConfig.js`, based on the project's status. `traits` (e.g. software,
   hardware, digital logic — one per line) is available starting at Idea, but optional there,
   so quick-capture stays frictionless. Also includes buttons to move a project forward a
-  stage, mark it completed/archived from active, or unarchive.
-- `lib/projectFieldConfig.js` — status order, labels, and field visibility per status. Edit
-  this file to change what's shown at each stage.
+  stage, mark it completed/archived from active, mark it back to active from completed or
+  archived, or unarchive. Marking a project completed locks every field except Insights and
+  Next steps (with a confirmation prompt first, since it's no longer a single reversible
+  click) — "Move back to active" lifts the lock again.
+- `lib/projectFieldConfig.js` — status order, labels, field visibility per status, and
+  `isLocked(status, field)` (whether a field should be locked on a completed project). Edit
+  this file to change what's shown — or locked — at each stage.
 - `lib/projectRepository.js` — the only file that touches the filesystem. Read/write/create
-  project JSON files live here.
+  project JSON files live here, plus read/write/delete for uploaded diagram files.
 - `pages/api/projects/` — thin API routes that call the repository. Pages never read/write
-  files directly.
+  files directly. `pages/api/projects/[id]/diagram.js` is the one route that isn't plain
+  JSON — it handles uploading, serving, and deleting a project's diagram file.
 - `data/projects/*.json` — one file per project.
+- `data/diagrams/*.html` — one uploaded interactive diagram per project, if any (see
+  "Technical specifications" below). Named by project id, same as the JSON files.
 - `data/index.json` — a curated list of known traits and a `links` array for connecting
   related projects. Neither is consumed by the UI yet — the trait filter on the dashboard
   derives its options directly from whatever traits are actually on your projects, which is
   simpler for now. `data/index.json` is there for when you want a fixed vocabulary or
   autocomplete instead.
+
+### Technical specifications
+
+This is a single uploaded, self-contained interactive HTML diagram per project, rendered
+in an iframe — not a form field. Design it in whatever tool you like and export it as one
+`.html` file; the app doesn't care which tool made it.
+[draw.io](https://www.drawio.com/) (File → Export as → HTML) is the recommended path — it's
+free, produces a genuinely interactive export (pan/zoom, layers, clickable links), and
+supports multiple pages in one file if you need that. By default that export loads its
+viewer script from draw.io's own servers, so it needs an internet connection to display;
+for a fully offline diagram, self-host draw.io's `viewer-static.min.js` instead (see their
+docs) before exporting.
+
+Uploads are capped at 15MB and only checked by file extension (`.html`/`.htm`) — there's no
+deeper content validation, since this is a single-user local tool.
 
 ## Deferred on purpose (see design doc)
 
@@ -45,3 +67,5 @@ start clean.
 - Linking related projects together in the UI.
 - Swapping JSON files for a real database, if the project graph ever outgrows them — should
   only require changes inside `lib/projectRepository.js`.
+- A static-image fallback for the diagram in Markdown export — currently the export just
+  notes a diagram is attached rather than embedding anything.

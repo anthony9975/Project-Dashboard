@@ -663,12 +663,14 @@ textarea {
   gap: 8px;
 }
 
-/* Technical specifications — "Circuit Blueprint" treatment per Technical-Specs-Table-Design.md.
-   This is currently the only component styled this way; nothing else in the app has this
-   card/fiducial/dotted-background pass applied to it yet. */
+/* Technical diagram — replaces the old "Circuit Blueprint" table treatment. A project's
+   Technical specifications section is now a single uploaded, self-contained interactive
+   HTML diagram rather than a structured table (see DiagramSlot.js and "Technical diagram"
+   in Project_Dashboard_Design.md). Deliberately simpler than the old treatment — no dotted
+   texture or fiducials — since the diagram itself is the visual interest here, not the
+   chrome around it. */
 
-.ts-card {
-  position: relative;
+.diagram-card {
   background: #fff;
   border: 0.5px solid var(--line);
   border-radius: 8px;
@@ -676,221 +678,53 @@ textarea {
   overflow: hidden;
 }
 
-.ts-header-row {
+.diagram-empty {
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.diagram-empty-text {
+  font-size: 13px;
+  color: var(--slate);
+  line-height: 1.5;
+  margin: 0 0 14px;
+}
+
+.diagram-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 8px 14px;
-  background: #fff;
+  padding: 10px 14px;
   border-bottom: 0.5px solid var(--line);
+  background: var(--paper);
 }
 
-.ts-hcell {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--slate);
-}
-.ts-hcell-label {
-  width: 110px;
-  flex-shrink: 0;
-}
-.ts-hcell-values {
-  flex: 1;
-}
-
-.ts-spacer {
-  width: 10px;
-  flex-shrink: 0;
-}
-.ts-header-actions-spacer {
-  width: 58px;
-  flex-shrink: 0;
-}
-
-.ts-divider {
-  width: 1px;
-  align-self: stretch;
-  background: var(--line);
-  flex-shrink: 0;
-}
-
-/* Subtle dotted "canvas" texture — scoped to the spec rows only, not the header or the
-   add-row footer. Circles are set to cover well over half of each tile (62%) so adjacent
-   tiles' circles touch/overlap slightly rather than reading as isolated dots, per design
-   feedback — and the low opacity (0.75 white on a near-white base) keeps it subtle rather
-   than a bold pattern. */
-.ts-rows {
-  background-color: #f5f7fa;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.75) 62%, transparent 64%);
-  background-size: 22px 22px;
-}
-
-.ts-row {
-  display: flex;
-  align-items: center;
-  min-height: 56px;
-  padding: 0 14px;
-  gap: 12px;
-  border-bottom: 0.5px solid var(--line);
-}
-.ts-row:last-child {
-  border-bottom: none;
-}
-.ts-row-editing {
-  align-items: flex-start;
-  padding: 12px 14px;
-}
-
-.ts-edit-block {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-}
-
-.ts-label {
+.diagram-filename {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 12px;
+  color: var(--ink);
+  word-break: break-all;
+}
+
+.diagram-meta {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
   color: var(--slate);
-  width: 110px;
-  flex-shrink: 0;
+  margin-top: 2px;
 }
 
-.ts-values {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex: 1;
-  padding: 12px 0;
+.diagram-header a.edit-btn {
+  text-decoration: none;
+}
+.diagram-header a.edit-btn:hover {
+  text-decoration: none;
 }
 
-.ts-actions {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-/* Read-only chip: plain bordered rectangle, not a pill — per the doc's "Technical Chips"
-   spec, 4px radius rather than the fully-rounded .trait-chip used elsewhere. Kept as its
-   own class rather than reusing .trait-chip so TraitPicker elsewhere is unaffected. */
-.ts-chip {
-  display: inline-flex;
-  align-items: center;
-  border: 0.5px solid var(--line);
-  border-radius: 4px;
-  padding: 3px 9px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  color: var(--ink);
-  background: #fff;
-}
-
-/* "Editable state" chip — value + vertical divider + close, all inside one bordered
-   container, per the doc. Used only while a row (or the add-row) is being edited. */
-.ts-chip-editable {
-  display: inline-flex;
-  align-items: stretch;
-  border: 0.5px solid var(--line);
-  border-radius: 4px;
-  overflow: hidden;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  color: var(--ink);
-  background: #fff;
-}
-.ts-chip-editable-value {
-  padding: 4px 9px;
-}
-.ts-chip-editable-divider {
-  width: 1px;
-  background: var(--line);
-}
-.ts-chip-editable-close {
-  padding: 4px 8px;
-  color: var(--clay);
-  cursor: pointer;
-}
-.ts-chip-editable-close:hover {
-  color: var(--circuit-blue);
-}
-
-/* Dashed border = "empty/add" affordance per the doc; solid circuit-blue on focus. Not
-   conditioned on whether the field actually has content — focus alone is enough signal. */
-.ts-input-dashed {
-  border: 1px dashed rgba(107, 118, 132, 0.4);
-  border-radius: 4px;
-  padding: 6px 9px;
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 12.5px;
-  background: #fff;
-  color: var(--ink);
-}
-.ts-input-dashed::placeholder {
-  color: #9aa3af;
-}
-.ts-input-dashed:focus {
-  outline: none;
-  border: 1px solid var(--circuit-blue);
-}
-.ts-label-input {
-  max-width: 170px;
-}
-
-/* Add-row footer: flat (no dots), a shade lighter than the dotted rows section so it still
-   reads as a distinct, more "recessed" zone without competing with the texture above it. */
-.ts-addrow-section {
-  background: #edf0f4;
-}
-
-.ts-addrow-collapsed {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+.diagram-frame {
+  display: block;
   width: 100%;
-  padding: 14px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
-  color: var(--circuit-blue);
-  background: transparent;
+  height: 520px;
   border: none;
-  cursor: pointer;
-  transition: background 0.12s;
-}
-.ts-addrow-collapsed:hover {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.ts-addrow-expanded {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  flex-wrap: wrap;
-}
-.ts-addrow-values {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  min-width: 160px;
-}
-
-.ts-collapse-btn {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  border: 0.5px solid var(--line);
   background: #fff;
-  color: var(--slate);
-  border-radius: 4px;
-  padding: 6px 8px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-.ts-collapse-btn:hover {
-  color: var(--clay);
-  border-color: var(--clay);
 }

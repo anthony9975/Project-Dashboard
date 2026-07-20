@@ -6,7 +6,7 @@ import TraitPicker from '../../components/TraitPicker';
 import EditableField from '../../components/EditableField';
 import RoadmapTimeline from '../../components/RoadmapTimeline';
 import ComponentsTable from '../../components/ComponentsTable';
-import TechnicalSpecsTable from '../../components/TechnicalSpecsTable';
+import DiagramSlot from '../../components/DiagramSlot';
 import ExportModal from '../../components/ExportModal';
 
 export async function getServerSideProps({ params }) {
@@ -19,7 +19,7 @@ const LABELS = {
   note: 'One-line note',
   description: 'Description',
   vision: 'Vision',
-  technicalSpecs: 'Technical specifications',
+  diagram: 'Technical specifications',
   roadmap: 'Roadmap',
   components: 'Components + costs',
   location: 'Location (repo, KiCad project, etc.)',
@@ -46,7 +46,7 @@ const LIST_FIELDS = new Set(['research']);
 // Locking: a "completed" project locks every field to preserve it as a finished record,
 // except "insights" and "nextSteps" (reflections keep evolving after the fact — see
 // isLocked() in projectFieldConfig.js, the single source of truth for this rule). `locked`
-// below covers the whole-widget fields (traits, technicalSpecs, roadmap, components); each
+// below covers the whole-widget fields (traits, diagram, roadmap, components); each
 // plain EditableField gets its own per-field lock check so the two exceptions stay editable.
 // "Move back to active" lifts the lock everywhere again, same as unarchiving.
 //
@@ -137,12 +137,13 @@ export default function ProjectDetail({ project: initialProject, allTraits }) {
       )}
 
       {fields.map((f) =>
-        f === 'technicalSpecs' ? (
-          <div className="field-block" key="technicalSpecs">
+        f === 'diagram' ? (
+          <div className="field-block" key="diagram">
             <div className="field-label">Technical specifications</div>
-            <TechnicalSpecsTable
-              value={project.technicalSpecs || []}
-              onChange={(technicalSpecs) => saveField('technicalSpecs', technicalSpecs)}
+            <DiagramSlot
+              projectId={project.id}
+              diagram={project.diagram}
+              onUpdate={(updated) => setProject(updated)}
               locked={locked}
             />
           </div>

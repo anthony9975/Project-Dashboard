@@ -6,8 +6,8 @@ things are built this way, see `context.md` (fast version) or `Project_Dashboard
 
 The short version: this is a Next.js app with **four layers**, each only aware of the one
 below it — `pages/*.js` (UI) → `pages/api/**` (API routes) → `lib/projectRepository.js`
-(data access) → `data/**` (JSON files on disk). Nothing above the repository touches the
-filesystem directly.
+(data access) → `data/**` (JSON files on disk, plus one uploaded HTML diagram per project).
+Nothing above the repository touches the filesystem directly.
 
 ## File tree
 
@@ -15,9 +15,12 @@ filesystem directly.
 project-dashboard/
 ├── data/
 │   ├── index.json                 # known traits + cross-project links (not wired into UI yet)
-│   └── projects/
-│       ├── 1.json                 # one JSON file per project — the actual database
-│       ├── 2.json
+│   ├── projects/
+│   │   ├── 1.json                 # one JSON file per project — the actual database
+│   │   ├── 2.json
+│   │   └── ...
+│   └── diagrams/
+│       ├── 1.html                 # one uploaded interactive diagram per project, if any
 │       └── ...
 ├── lib/
 │   ├── projectFieldConfig.js      # status order, field visibility, status-advance rules
@@ -29,7 +32,7 @@ project-dashboard/
 │   ├── TraitPicker.js             # search/select trait widget (inline edit + compact filter)
 │   ├── RoadmapTimeline.js         # roadmap steps + nested to-do lists, drag-to-reorder
 │   ├── ComponentsTable.js         # components + cost table (name, link, price, notes)
-│   ├── TechnicalSpecsTable.js     # label -> multi-value spec list, drag-to-reorder
+│   ├── DiagramSlot.js             # upload/replace/remove an interactive HTML diagram
 │   └── ExportModal.js             # checklist modal for exporting a project to Markdown
 ├── pages/
 │   ├── _app.js                    # loads global styles, wraps every page
@@ -38,7 +41,9 @@ project-dashboard/
 │   ├── api/
 │   │   └── projects/
 │   │       ├── index.js           # GET (list), POST (create)
-│   │       └── [id].js            # GET (one), PATCH (update)
+│   │       ├── [id].js            # GET (one), PATCH (update)
+│   │       └── [id]/
+│   │           └── diagram.js     # GET (serve), POST (upload), DELETE (remove) a diagram
 │   └── projects/
 │       └── [id].js                # project detail page — the most complex page
 ├── styles/
@@ -57,7 +62,9 @@ project-dashboard/
 
 Flat JSON files. Each project is one file, named by its id (`data/projects/3.json`).
 `data/index.json` holds a curated trait list and a `links` array for connecting related
-projects — both exist in the data model but aren't used by any page yet.
+projects — both exist in the data model but aren't used by any page yet. `data/diagrams/`
+holds one uploaded interactive HTML diagram per project, named by id (`data/diagrams/
+3.html`) — the only non-JSON, non-JavaScript content this app stores.
 
 There's no schema enforcement here beyond what `projectRepository.js` writes. If you open
 one of these files, you're looking at the actual shape of a `Project` — see the schema
@@ -65,16 +72,22 @@ sketch in `Project_Dashboard_Design.md` if a field's purpose isn't obvious from 
 
 ### `lib/projectRepository.js` — data access
 
-The only file allowed to call `fs.readFileSync` / `fs.writeFileSync`. Exports:
+The only file allowed to call `fs.readFileSync` / `fs.writeFileSync` (or their diagram-file
+equivalents). Exports:
 
 - `getAllProjects()`, `getProject(id)` — reads
 - `saveProject(project)`, `createProject({title, note})` — writes
 - `getAllTraits()` — derives the known-traits list from every project's `traits` array
+- `saveDiagramFile(id, buffer)`, `getDiagramFile(id)`, `deleteDiagramFile(id)` — the
+  project-JSON functions above only ever touch `data/projects/`; these three are the
+  matching read/write/delete trio for `data/diagrams/`, added when Technical specifications
+  became an uploaded file instead of table data (see context.md)
 
 It also runs `normalizeProject()` on every read, which transparently upgrades old data
 shapes (e.g. a roadmap step that predates the nested-to-do feature or the `completedDate`
 field, a component that predates the name/link/price/notes shape, or a project that
-predates `technicalSpecs` entirely) so old projects don't break when the schema evolves.
+predates `diagram` entirely — the last of these also drops the old `technicalSpecs` field
+if a project still has it, rather than upgrading it into a new shape).
 If you add a new field or change a shape, this is where the upgrade logic goes.
 
 ### `lib/projectFieldConfig.js` — status + field rules
@@ -99,10 +112,11 @@ entirely off the project object the detail page already has in memory.
 
 `selectedFields` drives which sections get included and in what order; each field has its
 own renderer (e.g. the roadmap renderer walks steps and their nested to-dos, the components
-renderer emits a Markdown table with a computed total row, the technical-specs renderer
-emits one bullet per spec with its values comma-joined). Deliberately kept separate from
-`ExportModal.js` so this generation logic could be reused by a future export entry point
-(e.g. a dashboard-level bulk export) without duplicating it.
+renderer emits a Markdown table with a computed total row, the diagram renderer notes that
+a diagram is attached and points back to the live page — a static-image fallback isn't
+built yet, see context.md). Deliberately kept separate from `ExportModal.js` so this
+generation logic could be reused by a future export entry point (e.g. a dashboard-level
+bulk export) without duplicating it.
 
 ### `pages/api/` — API routes
 
@@ -110,7 +124,11 @@ Thin. Each route calls the repository and returns JSON — no business logic liv
 beyond basic request validation (e.g. rejecting an empty title). If a page needs to read or
 write a project, it goes through one of these routes rather than importing the repository
 directly (except in `getServerSideProps`, which runs server-side and can call the
-repository directly — see below).
+repository directly — see below). One exception to "thin" and "returns JSON":
+`pages/api/projects/[id]/diagram.js` handles file upload/serve/delete instead — it's the
+one route that turns off Next's default JSON body parser (`bodyParser: false`) to read a
+raw `multipart/form-data` upload via `busboy`, and its GET returns the raw HTML file with
+a `text/html` content type rather than a JSON body.
 
 ### `pages/` — UI
 
@@ -135,10 +153,10 @@ repository directly — see below).
   a button, used as the dashboard filter, can't create new traits — only pick existing
   ones). Same component, same underlying logic, different presentation.
 - **`locked` prop convention:** `EditableField`, `TraitPicker` (inline variant only),
-  `RoadmapTimeline`, `ComponentsTable`, and `TechnicalSpecsTable` all accept a `locked`
+  `RoadmapTimeline`, `ComponentsTable`, and `DiagramSlot` all accept a `locked`
   boolean. When true, every edit affordance (pencils, add-rows, drag handles, remove
-  buttons) is omitted from render entirely rather than disabled — read display is
-  unaffected. The detail page is the only caller; it derives the value from
+  buttons, upload controls) is omitted from render entirely rather than disabled — read
+  display is unaffected. The detail page is the only caller; it derives the value from
   `isLocked(project.status, field)` in `projectFieldConfig.js` rather than any component
   checking `project.status` itself.
 - **`RoadmapTimeline`** is the most involved component: drag-to-reorder steps, a nested
@@ -155,12 +173,16 @@ repository directly — see below).
   (when one's set) rather than a separate URL column. Editing works on the whole row at
   once — pencil turns all four cells into inputs, confirm/cancel saves or discards
   together — rather than per-cell, since four separate pencils per row would be noisy.
-- **`TechnicalSpecsTable`** renders `technicalSpecs` as a flat, drag-to-reorder list of
-  freeform `label -> values` entries — e.g. `Languages: JavaScript, Python`. A label can
-  hold multiple values (rendered/edited as a small chip list, same chip styling as
-  `TraitPicker` but without the shared-vocabulary autocomplete, since specs aren't shared
-  across projects). Whole-row editing, same pencil/confirm/cancel shape as
-  `ComponentsTable`; dragging is disabled on a row while it's mid-edit.
+- **`DiagramSlot`** replaced `TechnicalSpecsTable` — Technical specifications is now a
+  single uploaded, self-contained interactive HTML diagram rather than a table (see
+  "Technical diagram" in `Project_Dashboard_Design.md`). The component never parses the
+  uploaded file itself; it renders an `<iframe src="/api/projects/{id}/diagram">` so the
+  diagram's own scripts/styles stay isolated from the rest of the app. Upload/replace both
+  go through the same `POST` to that route as a `multipart/form-data` request; remove is a
+  `DELETE`. Unlike every other editable widget on the page, its `onUpdate` callback receives
+  the *whole* updated project (the API route already returns it via `saveProject()`), not
+  just the changed field — so the detail page wires it straight to `setProject` rather than
+  through the generic `saveField` helper.
 - **`ExportModal`** is the checklist overlay opened by the detail page's "Export" button.
   Its checkbox list is literally the same `fields` array the detail page already computes
   from `fieldsFor(status)` (plus `traits` when shown) — not a second, separately-maintained

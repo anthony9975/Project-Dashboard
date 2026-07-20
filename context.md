@@ -101,10 +101,43 @@ Single user, runs on one machine, no auth.
   if something needs correcting after completion, rather than editing a "finished" record
   in place.
 - **The locking rule lives in one place**: `isLocked(status, field)` in
-  `projectFieldConfig.js`. Whole-widget fields (traits, technicalSpecs, roadmap,
+  `projectFieldConfig.js`. Whole-widget fields (traits, diagram, roadmap,
   components) call it with just `status`; individual `EditableField` instances pass their
   own field key so the `insights`/`nextSteps` exception applies automatically. No component
   re-derives the rule itself.
+- **Technical specifications was redesigned from a freeform label -> values table to a
+  single uploaded, self-contained interactive HTML diagram** (field key `diagram`; the
+  display label stays "Technical specifications" — same conceptual slot, different content
+  shape). The table didn't actually deliver on the flexibility it was built for; a diagram
+  authored in whatever tool fits the project does. Tool-agnostic by design (any
+  self-contained interactive HTML export is accepted); draw.io is the recommended path
+  since it has a genuine interactive HTML export with pan/zoom, layers/tags, and clickable
+  links, though its default export needs internet unless its offline `viewer-static.min.js`
+  is self-hosted.
+  - **First binary content this app stores.** The file lives at `data/diagrams/{id}.html`
+    (sibling to `data/projects/`, not inlined in the project's JSON — some exports run into
+    several MB with embedded fonts/scripts). The project JSON only holds a lightweight
+    `diagram: {originalFilename, uploadedAt} | null` reference. This is the one place the
+    repository pattern was actually extended (`saveDiagramFile`/`getDiagramFile`/
+    `deleteDiagramFile` alongside the existing JSON read/write functions) rather than just
+    reused, and the one API route that isn't plain JSON — uploads go through
+    `pages/api/projects/[id]/diagram.js` as `multipart/form-data`, parsed with `busboy`
+    (added as an explicit dependency; it was already vendored transitively via Next.js).
+  - **Rendered in an isolated `<iframe>`** pointed at that API route, not injected into the
+    page — keeps the uploaded file's own scripts/styles from bleeding into the rest of the
+    app.
+  - **One diagram per project.** If a diagram needs multiple "pages" (e.g. one per
+    subsystem), that's handled inside the uploaded file itself (draw.io's multi-page
+    support), not modeled as multiple files at the data layer — kept simple until proven
+    insufficient.
+  - **No static-image fallback for Markdown export yet — deliberately deferred.** An
+    interactive HTML file can't embed in a `.md` file; the export currently just notes a
+    diagram is attached. Options on the table: base64-embed a static image (keeps export a
+    single portable file, bloats it) vs. switching export to a `.zip` with an `assets/`
+    folder (clean files, new download UX). Left an explicit TODO in
+    `lib/exportProject.js` so this doesn't get silently forgotten.
+  - **Old `technicalSpecs` data was dropped, not migrated** — confirmed as sample/
+    placeholder data before removal, same bar as the earlier `todos` field removal.
 
 ## Visual identity, in one line
 
@@ -112,12 +145,8 @@ Light drafting/blueprint aesthetic — grid paper, hairline borders, small `+` c
 (PCB fiducial nod) — because the project spans software, hardware, and digital design, not
 because "technical" has to mean dark mode. Palette and type are in the design doc.
 
-- **Technical specifications got its own bespoke visual treatment** ("Circuit Blueprint",
-  from `Technical-Specs-Table-Design.md`), applied to this component only — the rest of the
-  app hasn't had this pass yet, on purpose. It sits in its own elevated card (hairline
-  border, corner fiducials, subtle shadow) with a header row, a subtly dotted background
-  behind the spec rows specifically (not the header, not the add-row footer), 4px-radius
-  chips instead of the pill-shaped `.trait-chip` used elsewhere, and a split
-  value/divider/close style for chips while a row's being edited. The persistent add-row
-  starts collapsed as a single "+ add a technical spec" row and expands into inputs on
-  click — unlike Components/Roadmap, whose add-rows are always expanded.
+- **Technical specifications was redesigned from a table to an uploaded diagram.** Its old
+  "Circuit Blueprint" bespoke visual treatment (elevated card, dotted background, 4px-radius
+  chips) is gone along with the table itself — see the "Technical diagram" decision below.
+  The new `.diagram-card` styling is deliberately plainer: the diagram is the visual
+  interest now, not the chrome around it.
