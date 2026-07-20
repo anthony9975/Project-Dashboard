@@ -130,14 +130,21 @@ Single user, runs on one machine, no auth.
     subsystem), that's handled inside the uploaded file itself (draw.io's multi-page
     support), not modeled as multiple files at the data layer — kept simple until proven
     insufficient.
-  - **No static-image fallback for Markdown export yet — deliberately deferred.** An
-    interactive HTML file can't embed in a `.md` file; the export currently just notes a
-    diagram is attached. Options on the table: base64-embed a static image (keeps export a
-    single portable file, bloats it) vs. switching export to a `.zip` with an `assets/`
-    folder (clean files, new download UX). Left an explicit TODO in
-    `lib/exportProject.js` so this doesn't get silently forgotten.
   - **Old `technicalSpecs` data was dropped, not migrated** — confirmed as sample/
     placeholder data before removal, same bar as the earlier `todos` field removal.
+- **Two planned export formats split this section differently: Markdown gets a
+  description, PDF (future) gets a static image.** An interactive HTML file can't embed in
+  a `.md` file at all, so Markdown export uses a new independent field,
+  `diagramDescription` — a short hand-written explanation, edited through a collapsed
+  "+ add an export description" toggle on the Technical specifications card itself. It's
+  deliberately hidden from the normal page view (the live page's version of this section
+  *is* the interactive diagram) and independent of `diagram` — uploading, replacing, or
+  removing the diagram doesn't touch it. If blank, export falls back to a short note that a
+  diagram is attached, same as before. This retires the earlier open question about a
+  static-image fallback *for Markdown* — that question no longer applies there. A static
+  image is still planned, just for **PDF export** instead (not yet built — no PDF-generation
+  code exists), since a PDF page can't be interactive anyway and a rendered snapshot is the
+  right fit there in a way it wasn't for Markdown.
 
 ## Visual identity, in one line
 

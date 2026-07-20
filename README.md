@@ -60,6 +60,12 @@ docs) before exporting.
 Uploads are capped at 15MB and only checked by file extension (`.html`/`.htm`) — there's no
 deeper content validation, since this is a single-user local tool.
 
+Since an interactive HTML file can't be embedded in a Markdown export, the diagram card
+also has a collapsed **"+ add an export description"** toggle — a short hand-written
+explanation used only by the `.md` export, hidden from the normal page view. It's
+independent of the diagram file itself: uploading, replacing, or removing the diagram
+doesn't touch it. Leave it blank and export just notes that a diagram is attached instead.
+
 ## Deferred on purpose (see design doc)
 
 - Gating (requiring certain fields before advancing a stage) — `ADVANCE_REQUIREMENTS` in
@@ -67,5 +73,6 @@ deeper content validation, since this is a single-user local tool.
 - Linking related projects together in the UI.
 - Swapping JSON files for a real database, if the project graph ever outgrows them — should
   only require changes inside `lib/projectRepository.js`.
-- A static-image fallback for the diagram in Markdown export — currently the export just
-  notes a diagram is attached rather than embedding anything.
+- **PDF export** — a second export format alongside Markdown, planned to embed a static
+  image of the diagram (Markdown uses the hand-written description above instead). No
+  PDF-generation code exists yet.

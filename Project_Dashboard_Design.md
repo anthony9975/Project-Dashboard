@@ -63,6 +63,11 @@ Rough shape:
                          // onward, alongside the roadmap. Was a freeform label -> values
                          // table ("technicalSpecs") before the redesign — see "Technical
                          // diagram" below.
+  diagramDescription,   // hand-written explanation of the technical specifications, used
+                         // only by the Markdown export — independent of `diagram` itself,
+                         // persists across uploading/replacing/removing it. Hidden from
+                         // the normal page view (collapsed toggle) — see "Technical
+                         // diagram" below.
   roadmap: [...],       // initial approach at "planned", fleshed out at "active",
                          // and doubles as the finished timeline once "completed"
                          // each step: {id, text, status, completedDate, todos: [{id, text, status}]}
@@ -301,13 +306,26 @@ the app (it's a file, not queryable data).
 - **15MB upload cap**, and the app only checks the file extension (`.html`/`.htm`) — no
   deeper validation of what's inside, consistent with this being a single-user local tool
   with no one else's content to guard against.
-- **Deferred, on purpose: a static image for Markdown export.** An interactive HTML file
-  can't be embedded in a `.md` file, and there's currently no static-image fallback either
-  — the export just notes a diagram is attached and points back to the live page. The
-  options considered: embed a static image (e.g. also exported from the same source) as a
-  base64 data URI, which keeps the export a single portable file but bloats it; or switch
-  export to a `.zip` with an `assets/` folder, which keeps files clean but changes the
-  download from "one `.md` file" to "a bundle." Not decided yet — revisit when it matters.
+- **Two export formats, two different strategies for this section.** Markdown is built;
+  PDF export is planned but deliberately not built yet (no PDF-generation code exists in
+  the app). The split:
+  - **Markdown gets `diagramDescription`** — a short hand-written explanation of the
+    technical specifications, since an interactive HTML file can't be embedded in a `.md`
+    file at all. It's edited through a collapsed **"+ add an export description"** toggle
+    inside the Technical specifications card, deliberately hidden from the normal page
+    view — the live page's version of this section *is* the interactive diagram; this text
+    exists solely to give the Markdown export real content instead of a placeholder note.
+    It's independent of the diagram file itself (see `normalizeDiagram()` in
+    `projectRepository.js`): uploading, replacing, or removing the diagram doesn't touch
+    it. If left blank, the export falls back to a short note that a diagram is attached and
+    points back to the live page, rather than omitting the section.
+  - **PDF export (future) is planned to embed a static image** of the diagram instead —
+    a PDF page can't be interactive anyway, so a rendered snapshot is the right fit there
+    in a way it isn't for Markdown. This resolves what used to be an open question about
+    adding a static-image fallback to the *Markdown* export (base64 vs. a `.zip` bundle) —
+    that question doesn't apply to Markdown anymore, and moves to PDF export once that's
+    actually built (where it'll need its own answer: uploaded alongside the interactive
+    HTML? generated server-side from it? — not designed yet).
 - **Position unchanged**: still visible from "planned" onward, still positioned before the
   roadmap (`description → vision → technical specs → roadmap`) — same reasoning as before,
   picking your stack/approach typically precedes planning build steps. The display label
@@ -364,7 +382,8 @@ Three structural neutrals (Paper, Ink, Line) plus one color per project status, 
 - Technical specifications: single uploaded, self-contained interactive HTML diagram
   (tool-agnostic, draw.io recommended) rendered in an isolated iframe, visible from
   "planned" onward (same visibility tier as the roadmap) — replaced the earlier freeform
-  label -> multiple-values table
+  label -> multiple-values table. Also carries an independent, hidden-by-default
+  `diagramDescription` used by the Markdown export (see "Technical diagram" above)
 - Insights moved from completed-only to visible from "active" onward, so it can be
   filled in while a project is actively being worked on
 - Completed projects lock every field except Insights and Next steps; "Mark completed"
@@ -372,9 +391,9 @@ Three structural neutrals (Paper, Ink, Line) plus one color per project status, 
   lock again
 
 **Deferred on purpose:**
-- A static-image fallback for the diagram in Markdown export (currently the export just
-  notes a diagram is attached) — base64 data URI vs. switching export to a `.zip` bundle,
-  not decided yet
+- **PDF export** — a second export format alongside Markdown, planned to embed a static
+  image of the technical diagram (Markdown uses a hand-written description instead — see
+  "Technical diagram" above). No PDF-generation code exists yet.
 - Gating (requirement data exists in `ADVANCE_REQUIREMENTS`, not enforced yet)
 - Linking related projects together in the UI (`links` field exists on the data model, no UI yet)
 - Grouping/categorizing traits, if the list gets large

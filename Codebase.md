@@ -32,7 +32,8 @@ project-dashboard/
 │   ├── TraitPicker.js             # search/select trait widget (inline edit + compact filter)
 │   ├── RoadmapTimeline.js         # roadmap steps + nested to-do lists, drag-to-reorder
 │   ├── ComponentsTable.js         # components + cost table (name, link, price, notes)
-│   ├── DiagramSlot.js             # upload/replace/remove an interactive HTML diagram
+│   ├── DiagramSlot.js             # upload/replace/remove an interactive HTML diagram,
+│   │                               # plus a hidden export-description toggle
 │   └── ExportModal.js             # checklist modal for exporting a project to Markdown
 ├── pages/
 │   ├── _app.js                    # loads global styles, wraps every page
@@ -112,11 +113,12 @@ entirely off the project object the detail page already has in memory.
 
 `selectedFields` drives which sections get included and in what order; each field has its
 own renderer (e.g. the roadmap renderer walks steps and their nested to-dos, the components
-renderer emits a Markdown table with a computed total row, the diagram renderer notes that
-a diagram is attached and points back to the live page — a static-image fallback isn't
-built yet, see context.md). Deliberately kept separate from `ExportModal.js` so this
-generation logic could be reused by a future export entry point (e.g. a dashboard-level
-bulk export) without duplicating it.
+renderer emits a Markdown table with a computed total row, the diagram renderer prefers
+`diagramDescription` — a hand-written explanation, edited via a hidden toggle on
+`DiagramSlot` — falling back to a note that a diagram is attached if no description was
+written; see context.md under "Technical diagram"). Deliberately kept separate from
+`ExportModal.js` so this generation logic could be reused by a future export entry point
+(e.g. a dashboard-level bulk export) without duplicating it.
 
 ### `pages/api/` — API routes
 
@@ -182,7 +184,11 @@ a `text/html` content type rather than a JSON body.
   `DELETE`. Unlike every other editable widget on the page, its `onUpdate` callback receives
   the *whole* updated project (the API route already returns it via `saveProject()`), not
   just the changed field — so the detail page wires it straight to `setProject` rather than
-  through the generic `saveField` helper.
+  through the generic `saveField` helper. It also owns a second, unrelated piece of state:
+  `diagramDescription`, a hand-written explanation used only by the Markdown export (see
+  `lib/exportProject.js`), edited through a collapsed toggle inside the same card. Unlike
+  the diagram file, saving it *does* go through the normal `saveField('diagramDescription',
+  v)` path from the detail page, since it's a plain project field, not a file.
 - **`ExportModal`** is the checklist overlay opened by the detail page's "Export" button.
   Its checkbox list is literally the same `fields` array the detail page already computes
   from `fieldsFor(status)` (plus `traits` when shown) — not a second, separately-maintained

@@ -143,7 +143,9 @@ export default function ProjectDetail({ project: initialProject, allTraits }) {
             <DiagramSlot
               projectId={project.id}
               diagram={project.diagram}
+              diagramDescription={project.diagramDescription}
               onUpdate={(updated) => setProject(updated)}
+              onSaveDescription={(v) => saveField('diagramDescription', v)}
               locked={locked}
             />
           </div>

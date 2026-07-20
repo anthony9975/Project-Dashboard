@@ -728,3 +728,35 @@ textarea {
   border: none;
   background: #fff;
 }
+
+/* Export description — collapsed-by-default toggle inside the diagram card (see
+   ExportDescriptionSection in DiagramSlot.js). Deliberately understated: a plain text
+   link, not a button, since it's meant to stay out of the way of the diagram itself. */
+
+.diagram-description-toggle {
+  padding: 8px 14px;
+  border-top: 0.5px solid var(--line);
+}
+.diagram-description-toggle .edit-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--slate);
+}
+.diagram-description-toggle .edit-btn:hover {
+  color: var(--circuit-blue);
+}
+
+.diagram-description-panel {
+  padding: 12px 14px;
+  border-top: 0.5px solid var(--line);
+  background: var(--paper);
+}
+
+.diagram-description-hint {
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: var(--slate);
+  font-size: 11px;
+}
