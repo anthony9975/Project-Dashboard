@@ -5,10 +5,26 @@ details, see `docs/FEATURES.md`. For *why* things are built this way, see `docs/
 (fast version) or `docs/Project_Dashboard_Design.md` (full reasoning). This doc is just: what's
 here, and what talks to what.
 
-The short version: this is a Next.js app with **four layers**, each only aware of the one
-below it — `pages/*.js` (UI) → `pages/api/**` (API routes) → `lib/projectRepository.js`
-(data access) → `data/**` (JSON files on disk, plus one uploaded HTML diagram per project).
-Nothing above the repository touches the filesystem directly.
+## Architecture & Layering Rules
+
+The project strictly follows a **4-layer boundary**. Each layer may only call the layer directly below it:
+
+```
+UI Layer (pages/*.js, components/*.js)
+  ↓
+API Route Layer (pages/api/**/*.js)
+  ↓
+Repository Layer (lib/projectRepository.js)
+  ↓
+Storage Layer (data/projects/*.json, data/diagrams/*.html)
+```
+
+- **UI Layer (`pages/`, `components/`)**: Renders React components and manages local transient UI state. Never imports Node filesystem modules (`fs`, `path`).
+- **API Route Layer (`pages/api/`)**: Thin HTTP request handlers. Delegates all data operations to `lib/projectRepository.js`.
+- **Repository Layer (`lib/projectRepository.js`)**: **The ONLY file allowed to touch the filesystem.** Uses `fs.readFileSync`, `fs.writeFileSync`, etc.
+- **Storage Layer (`data/`)**: Flat files on disk (`data/projects/{id}.json` and `data/diagrams/{id}.html`).
+
+*Server-Side Data Loading Exception:* Page components (`pages/index.js`, `pages/projects/[id].js`) use `getServerSideProps` to load initial data directly from `lib/projectRepository.js` server-side, bypassing local HTTP round-trips while preserving storage isolation.
 
 ## File tree
 

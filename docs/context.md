@@ -162,6 +162,10 @@ Single user, runs on one machine, no auth.
   vision, built component capabilities, and deferred items out of `Project_Dashboard_Design.md`
   and `Codebase.md` into a single centralized `docs/FEATURES.md` document for clearer separation
   of concerns.
+- **`CONVENTIONS.md` restructured to focus on coding & styling standards.** Moved architectural
+  decisions and layer boundary breakdowns out of `CONVENTIONS.md` into `Codebase.md`, leaving
+  `CONVENTIONS.md` to reference `Codebase.md` for architecture while focusing on file naming,
+  exports, comments, and CSS conventions.
 
 ## Visual identity, in one line
 

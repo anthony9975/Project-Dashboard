@@ -20,8 +20,7 @@ Before making any change, read in this order:
 5. **`docs/Project_Dashboard_Design.md`** — full design reasoning, data shapes, UI patterns,
    palette/type reference. Go here when `docs/context.md`'s condensed version isn't enough
    detail to act on.
-6. **`docs/CONVENTIONS.md`** — coding standards, UI patterns, state management rules, and
-   styling conventions.
+6. **`docs/CONVENTIONS.md`** — coding standards, naming conventions, file organization, and styling rules (referencing `docs/Codebase.md` for architecture).
 
 If something you're about to do isn't covered by any of the three, don't assume — ask the
 user (see §4).
