@@ -15,10 +15,12 @@ Before making any change, read in this order:
    decided.
 3. **`docs/Codebase.md`** — map of the actual files: what's where, what talks to what, how one
    action flows end-to-end through the four layers.
-4. **`docs/Project_Dashboard_Design.md`** — full design reasoning, data shapes, UI patterns,
+4. **`docs/FEATURES.md`** — comprehensive map of all project features: original vision,
+   currently built feature set, and deferred capabilities.
+5. **`docs/Project_Dashboard_Design.md`** — full design reasoning, data shapes, UI patterns,
    palette/type reference. Go here when `docs/context.md`'s condensed version isn't enough
    detail to act on.
-5. **`docs/CONVENTIONS.md`** — coding standards, UI patterns, state management rules, and
+6. **`docs/CONVENTIONS.md`** — coding standards, UI patterns, state management rules, and
    styling conventions.
 
 If something you're about to do isn't covered by any of the three, don't assume — ask the
@@ -29,7 +31,7 @@ user (see §4).
 A personal, local-first tool for tracking project ideas from raw idea through completion.
 Strictly single-user, runs on one machine, no authentication. Full product context lives in
 `docs/Project_Dashboard_Design.md`; the current feature set and what's deliberately deferred are
-in its "Status" section.
+in `docs/FEATURES.md`.
 
 ## 3. Architecture rules (enforced, not optional)
 
@@ -91,8 +93,9 @@ that technically avoids the letter of the rule while breaking its intent.
   - **`docs/context.md`** — new key decisions and the reasoning behind them, in the same
     condensed, dated-log style as existing entries.
   - **`docs/Codebase.md`** — if a file was added, removed, or its responsibility changed.
+  - **`docs/FEATURES.md`** — if a feature scope, status (built / deferred), or feature specification changes.
   - **`docs/Project_Dashboard_Design.md`** — if a feature's full design/reasoning changed, or
-    the "Status" (built / deferred) section needs updating.
+    the "Status" section needs updating.
   - **`docs/CONVENTIONS.md`** — if a code convention, state pattern, or styling rule changes.
   - **This file (`AGENTS.md`)** — only if a *rule or boundary itself* changes (e.g. the
     layer structure, the approval bar, the doc set). Don't duplicate feature-level

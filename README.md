@@ -66,7 +66,7 @@ explanation used only by the `.md` export, hidden from the normal page view. It'
 independent of the diagram file itself: uploading, replacing, or removing the diagram
 doesn't touch it. Leave it blank and export just notes that a diagram is attached instead.
 
-## Deferred on purpose (see design doc)
+## Deferred on purpose (see `docs/FEATURES.md`)
 
 - Gating (requiring certain fields before advancing a stage) — `ADVANCE_REQUIREMENTS` in
   `projectFieldConfig.js` already lists what would be required, it's just not enforced yet.

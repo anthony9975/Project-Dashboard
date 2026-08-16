@@ -1,8 +1,9 @@
 # Codebase
 
-A map of the actual files, for someone opening this project for the first time. For *why*
-things are built this way, see `docs/context.md` (fast version) or `docs/Project_Dashboard_Design.md`
-(full reasoning). This doc is just: what's here, and what talks to what.
+A map of the actual files, for someone opening this project for the first time. For feature
+details, see `docs/FEATURES.md`. For *why* things are built this way, see `docs/context.md`
+(fast version) or `docs/Project_Dashboard_Design.md` (full reasoning). This doc is just: what's
+here, and what talks to what.
 
 The short version: this is a Next.js app with **four layers**, each only aware of the one
 below it — `pages/*.js` (UI) → `pages/api/**` (API routes) → `lib/projectRepository.js`
@@ -54,6 +55,7 @@ project-dashboard/
 ├── docs/
 │   ├── CONVENTIONS.md                 # coding standards, UI patterns, and layer rules
 │   ├── Codebase.md                    # this file
+│   ├── FEATURES.md                    # full feature specifications, built & deferred items
 │   ├── Project_Dashboard_Design.md    # full design reasoning
 │   └── context.md                     # condensed decision log
 ├── next.config.js

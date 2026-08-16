@@ -4,29 +4,9 @@
 
 I have many project ideas floating around in my head and would like a good way to store/display them for the future. Currently stored in a Google Doc, but a dedicated application would allow for a project status page, a completed projects page, and hopefully more motivation to actually work on projects.
 
-## Features (original vision)
+## Features
 
-- **Project Idea List** — list of all potential projects
-  - Organized into categories (software, hardware, digital design, etc.)
-  - Related ideas connected together (e.g. learning about AI → building an AI → building an AI agent using that self-built AI)
-  - Each project includes:
-    - *Must haves:* description, vision for the end goal
-    - *Nice to haves:* list of components + costs, rough roadmap
-- **Project Status Tracker** — tracks projects currently in progress
-  - Where the project is stored (GitHub, KiCad, etc.)
-  - Project timeline / roadmap, step-by-step implementation plan
-  - To-dos / next steps
-  - Research material being used
-  - **Archived Project Page**
-    - Why the project was archived
-    - Any blockers that need to be resolved
-    - A way to unarchive once blockers are resolved
-- **Completed Project Page**
-  - Shows all completed projects, pulling from the Idea and Tracker pages
-  - Accurate timeline of how long everything took and the steps taken
-  - Finalized description (so it can be linked to from a personal website)
-  - Next steps / ideas for building on the project
-  - Thoughts and insights gained
+The complete feature breakdown — including the original vision, built features, and deferred capabilities — is documented in `docs/FEATURES.md`. Below is the architectural, UI pattern, and visual design reasoning that underpins those features.
 
 ## Architecture decisions
 
@@ -373,37 +353,11 @@ Three structural neutrals (Paper, Ink, Line) plus one color per project status, 
 
 ## Status
 
-**Built:**
-- Dashboard with status tabs (idea, planned, active, completed, archived), a collapsed trait filter with any/all matching, and card grid
-- New-idea capture page (title + one-line note only)
-- Project detail page — every field, including title, is plain text with a pencil to edit and confirm/cancel to save; no page-wide save button. Buttons to advance status, mark active projects completed/archived, or unarchive
-- Traits: search-and-select picker, multi-value, freeform vocabulary
-- Components + costs: structured table (name/link as one clickable field, numeric price,
-  notes, running total), whole-row editing, replacing the old plain-text list
-- Roadmap: vertical timeline, drag-to-reorder steps, 3-state status, nested per-step to-do lists with their own 3-state status, their own independent drag-to-reorder, collapse/expand, and the two auto-behaviors (auto-expand on in-progress, auto-complete on all-todos-done). Each step also has an editable, auto-stamped `completedDate` — the roadmap now doubles as the finished timeline once a project is completed, so the separate `timeline` field has been removed
-- Export to Markdown: single-project export from the detail page, field checklist driven
-  by the same status-based visibility as the page itself
-- Technical specifications: single uploaded, self-contained interactive HTML diagram
-  (tool-agnostic, draw.io recommended) rendered in an isolated iframe, visible from
-  "planned" onward (same visibility tier as the roadmap) — replaced the earlier freeform
-  label -> multiple-values table. Also carries an independent, hidden-by-default
-  `diagramDescription` used by the Markdown export (see "Technical diagram" above)
-- Features: bulleted list widget (`FeaturesList.js`) supporting Feature Name and Description inline (`Name - Description`), collapsible sub-feature lists (covering sub-features and add inputs when collapsed), drag-to-reorder, inline editing, and deletion; visible from "planned" onward
-- Research: structured entry widget (`ResearchList.js`) sitting unboxed directly on the page layout, supporting Article Name, Article Link (hidden within name as a link when not editing), and an indented Description below; moved from active-only to visible from "planned" onward so research material can be collected during initial project planning
-- Completed projects lock every field except Insights and Next steps; "Mark completed"
-  now confirms first, and a "Move back to active" button on completed projects lifts the
-  lock again
+For the full feature list, detailed component specifications, and deferred capabilities, see `docs/FEATURES.md`.
 
-**Deferred on purpose:**
-- **PDF export** — a second export format alongside Markdown, planned to embed a static
-  image of the technical diagram (Markdown uses a hand-written description instead — see
-  "Technical diagram" above). No PDF-generation code exists yet.
-- Gating (requirement data exists in `ADVANCE_REQUIREMENTS`, not enforced yet)
-- Linking related projects together in the UI (`links` field exists on the data model, no UI yet)
-- Grouping/categorizing traits, if the list gets large
-- Swapping JSON files for a database, if the project graph ever outgrows them (`lib/projectRepository.js` is the only file that should need to change)
-- Bulk/dashboard-level export (multiple projects at once) — single-project export was
-  built first since it's the more immediate need
+In summary:
+- **Built**: Dashboard status navigation & trait filtering, frictionless idea capture, status-driven field visibility, per-field independent editing, trait picker, nested features list, unboxed research entries, interactive roadmap with nested to-dos and auto-stamped timeline dates, components & costs table with running total, technical diagram iframe slot, project field locking on completion, and single-project Markdown export.
+- **Deferred on purpose**: PDF export (with static image snapshots), stage advance gating, cross-project linking UI, trait grouping/categorization, database backend migration, and bulk/dashboard export.
 
 ## Important notes
 

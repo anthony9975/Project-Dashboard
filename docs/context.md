@@ -1,8 +1,9 @@
 # Context
 
 Condensed key-decisions log for the project dashboard. For full reasoning, data shapes, and
-the palette/type reference, see `docs/Project_Dashboard_Design.md` — this file is the fast-scan
-version of the same decisions, not a replacement.
+the palette/type reference, see `docs/Project_Dashboard_Design.md`. For feature details and
+built/deferred feature lists, see `docs/FEATURES.md` — this file is the fast-scan version of the
+same decisions, not a replacement.
 
 ## What this is
 
@@ -157,6 +158,10 @@ Single user, runs on one machine, no auth.
   page layout (unboxed, without card background/borders), displaying the Article Name on top
   (clickable link hiding the URL when link is present) with Description placed below and
   indented to the right. Upgrades old string entries transparently via `normalizeResearch()`.
+- **Feature documentation extracted to `docs/FEATURES.md`.** Extracted feature listings, original
+  vision, built component capabilities, and deferred items out of `Project_Dashboard_Design.md`
+  and `Codebase.md` into a single centralized `docs/FEATURES.md` document for clearer separation
+  of concerns.
 
 ## Visual identity, in one line
 
