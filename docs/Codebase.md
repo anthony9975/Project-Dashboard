@@ -50,6 +50,7 @@ project-dashboard/
 ├── styles/
 │   └── globals.css                # palette, type, and every component's CSS
 ├── docs/
+│   ├── CONVENTIONS.md                 # coding standards, UI patterns, and layer rules
 │   ├── Codebase.md                    # this file
 │   ├── Project_Dashboard_Design.md    # full design reasoning
 │   └── context.md                     # condensed decision log

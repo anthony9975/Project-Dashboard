@@ -18,6 +18,8 @@ Before making any change, read in this order:
 4. **`docs/Project_Dashboard_Design.md`** — full design reasoning, data shapes, UI patterns,
    palette/type reference. Go here when `docs/context.md`'s condensed version isn't enough
    detail to act on.
+5. **`docs/CONVENTIONS.md`** — coding standards, UI patterns, state management rules, and
+   styling conventions.
 
 If something you're about to do isn't covered by any of the three, don't assume — ask the
 user (see §4).
@@ -91,6 +93,7 @@ that technically avoids the letter of the rule while breaking its intent.
   - **`docs/Codebase.md`** — if a file was added, removed, or its responsibility changed.
   - **`docs/Project_Dashboard_Design.md`** — if a feature's full design/reasoning changed, or
     the "Status" (built / deferred) section needs updating.
+  - **`docs/CONVENTIONS.md`** — if a code convention, state pattern, or styling rule changes.
   - **This file (`AGENTS.md`)** — only if a *rule or boundary itself* changes (e.g. the
     layer structure, the approval bar, the doc set). Don't duplicate feature-level
     decisions here; they belong in `docs/context.md`.
