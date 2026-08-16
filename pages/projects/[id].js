@@ -4,6 +4,8 @@ import { getProject, getAllTraits } from '../../lib/projectRepository';
 import { STATUS_LABELS, fieldsFor, nextStatus, isLocked } from '../../lib/projectFieldConfig';
 import TraitPicker from '../../components/TraitPicker';
 import EditableField from '../../components/EditableField';
+import FeaturesList from '../../components/FeaturesList';
+import ResearchList from '../../components/ResearchList';
 import RoadmapTimeline from '../../components/RoadmapTimeline';
 import ComponentsTable from '../../components/ComponentsTable';
 import DiagramSlot from '../../components/DiagramSlot';
@@ -20,10 +22,11 @@ const LABELS = {
   description: 'Description',
   vision: 'Vision',
   diagram: 'Technical specifications',
+  features: 'Features',
   roadmap: 'Roadmap',
   components: 'Components + costs',
   location: 'Location (repo, KiCad project, etc.)',
-  research: 'Research (one link/note per line)',
+  research: 'Research',
   archivedReason: 'Why archived',
   blockers: 'Blockers',
   insights: 'Insights',
@@ -31,7 +34,7 @@ const LABELS = {
   traits: 'Traits',
 };
 
-const LIST_FIELDS = new Set(['research']);
+const LIST_FIELDS = new Set([]);
 
 // Each field saves itself independently now (see EditableField) — there's no page-wide
 // "Save changes" button anymore. Status changes are the one thing that still happen via
@@ -149,6 +152,15 @@ export default function ProjectDetail({ project: initialProject, allTraits }) {
               locked={locked}
             />
           </div>
+        ) : f === 'features' ? (
+          <div className="field-block" key="features">
+            <div className="field-label">Features</div>
+            <FeaturesList
+              value={project.features || []}
+              onChange={(features) => saveField('features', features)}
+              locked={locked}
+            />
+          </div>
         ) : f === 'roadmap' ? (
           <div className="field-block" key="roadmap">
             <div className="field-label">Roadmap</div>
@@ -164,6 +176,15 @@ export default function ProjectDetail({ project: initialProject, allTraits }) {
             <ComponentsTable
               value={project.components || []}
               onChange={(components) => saveField('components', components)}
+              locked={locked}
+            />
+          </div>
+        ) : f === 'research' ? (
+          <div className="field-block" key="research">
+            <div className="field-label">Research</div>
+            <ResearchList
+              value={project.research || []}
+              onChange={(research) => saveField('research', research)}
               locked={locked}
             />
           </div>

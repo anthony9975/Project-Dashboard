@@ -145,6 +145,18 @@ Single user, runs on one machine, no auth.
   image is still planned, just for **PDF export** instead (not yet built — no PDF-generation
   code exists), since a PDF page can't be interactive anyway and a rendered snapshot is the
   right fit there in a way it wasn't for Markdown.
+- **Features field added as a nested bullet list with inline Name & Description.**
+  Each item carries `{ id, name, description, subFeatures: [{ id, name, description }] }`.
+  Displays as `Feature Name - Description` (or `Sub-feature Name - Description`), with
+  collapsible sub-feature lists (which cover both sub-features and add inputs when collapsed),
+  drag-to-reorder, inline editing, and deletion via `components/FeaturesList.js`. Upgrades
+  old project records transparently on read via `normalizeFeatures()`.
+- **Research redesigned as unboxed structured entries in Planned phase.** `research` moved to
+  `PLANNED_FIELDS` in `lib/projectFieldConfig.js` and upgraded to structured items
+  (`{ id, name, link, description }`) via `components/ResearchList.js`. Sits directly on the
+  page layout (unboxed, without card background/borders), displaying the Article Name on top
+  (clickable link hiding the URL when link is present) with Description placed below and
+  indented to the right. Upgrades old string entries transparently via `normalizeResearch()`.
 
 ## Visual identity, in one line
 

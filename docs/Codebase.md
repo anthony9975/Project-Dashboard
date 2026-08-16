@@ -30,6 +30,8 @@ project-dashboard/
 │   ├── EditableField.js           # plain text + pencil icon -> editable box + confirm/cancel
 │   ├── Fiducials.js               # small "+" corner marks (style detail, used on cards)
 │   ├── TraitPicker.js             # search/select trait widget (inline edit + compact filter)
+│   ├── FeaturesList.js            # nested features and sub-features list with drag-to-reorder
+│   ├── ResearchList.js            # research entries (name, link, description) with drag-to-reorder
 │   ├── RoadmapTimeline.js         # roadmap steps + nested to-do lists, drag-to-reorder
 │   ├── ComponentsTable.js         # components + cost table (name, link, price, notes)
 │   ├── DiagramSlot.js             # upload/replace/remove an interactive HTML diagram,
@@ -157,12 +159,21 @@ a `text/html` content type rather than a JSON body.
   a button, used as the dashboard filter, can't create new traits — only pick existing
   ones). Same component, same underlying logic, different presentation.
 - **`locked` prop convention:** `EditableField`, `TraitPicker` (inline variant only),
-  `RoadmapTimeline`, `ComponentsTable`, and `DiagramSlot` all accept a `locked`
-  boolean. When true, every edit affordance (pencils, add-rows, drag handles, remove
-  buttons, upload controls) is omitted from render entirely rather than disabled — read
+  `FeaturesList`, `ResearchList`, `RoadmapTimeline`, `ComponentsTable`, and `DiagramSlot` all
+  accept a `locked` boolean. When true, every edit affordance (pencils, add-rows, drag handles,
+  remove buttons, upload controls) is omitted from render entirely rather than disabled — read
   display is unaffected. The detail page is the only caller; it derives the value from
   `isLocked(project.status, field)` in `projectFieldConfig.js` rather than any component
   checking `project.status` itself.
+- **`FeaturesList`** renders `features` as a bulleted list where each feature item can carry
+  its own nested sub-features list, with Feature Name and Description displayed inline (`Name - Description`).
+  Sub-feature lists are collapsible (hiding sub-features and the add sub-feature input when collapsed).
+  Supports drag-to-reorder for both features and sub-features (calling `e.stopPropagation()` to prevent
+  nested drag bubbling), inline editing (pencil icon), removal (`×`), and adding new features or sub-features.
+- **`ResearchList`** renders `research` as structured entries (`{ id, name, link, description }`) sitting unboxed
+  directly on the page layout. Displays Article Name on top (clickable link hiding the raw URL when a link is provided),
+  with Description placed directly below it and indented to the right. Supports inline editing, deletion (`×`), and
+  persistent add inputs.
 - **`RoadmapTimeline`** is the most involved component: drag-to-reorder steps, a nested
   `StepRow` per step containing its own drag-to-reorder `TodoRow` list, and the two
   auto-behaviors (auto-expand on in-progress, auto-complete on all-to-dos-done) described

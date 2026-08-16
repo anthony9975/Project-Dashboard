@@ -68,6 +68,9 @@ Rough shape:
                          // persists across uploading/replacing/removing it. Hidden from
                          // the normal page view (collapsed toggle) — see "Technical
                          // diagram" below.
+  features: [...],      // bullet list of features where each feature can carry nested
+                         // sub-features: [{id, text, subFeatures: [{id, text}]}]
+                         // visible from "planned" onward
   roadmap: [...],       // initial approach at "planned", fleshed out at "active",
                          // and doubles as the finished timeline once "completed"
                          // each step: {id, text, status, completedDate, todos: [{id, text, status}]}
@@ -109,9 +112,10 @@ Which fields are shown is determined by the project's current `status`, and is a
 | Traits, links to other projects | optional | ✓ | ✓ | ✓ | ✓ |
 | Expanded description, vision | | ✓ | ✓ | ✓ | ✓ |
 | Technical specifications (diagram) | | ✓ | ✓ | ✓ | ✓ |
-| Initial roadmap / approach | | ✓ | ✓ | ✓ | ✓ |
+| Features (with nested sub-features) | | ✓ | ✓ | ✓ | ✓ |
+| Initial roadmap / approach, research | | ✓ | ✓ | ✓ | ✓ |
 | Components + costs, detailed roadmap | | optional | ✓ | ✓ | ✓ |
-| Location, research | | | ✓ | ✓ | ✓ |
+| Location | | | ✓ | ✓ | ✓ |
 | Insights | | | ✓ | ✓ | ✓ |
 | Reason archived, blockers | | | | ✓ | |
 | Next steps | | | | | ✓ |
@@ -384,8 +388,8 @@ Three structural neutrals (Paper, Ink, Line) plus one color per project status, 
   "planned" onward (same visibility tier as the roadmap) — replaced the earlier freeform
   label -> multiple-values table. Also carries an independent, hidden-by-default
   `diagramDescription` used by the Markdown export (see "Technical diagram" above)
-- Insights moved from completed-only to visible from "active" onward, so it can be
-  filled in while a project is actively being worked on
+- Features: bulleted list widget (`FeaturesList.js`) supporting Feature Name and Description inline (`Name - Description`), collapsible sub-feature lists (covering sub-features and add inputs when collapsed), drag-to-reorder, inline editing, and deletion; visible from "planned" onward
+- Research: structured entry widget (`ResearchList.js`) sitting unboxed directly on the page layout, supporting Article Name, Article Link (hidden within name as a link when not editing), and an indented Description below; moved from active-only to visible from "planned" onward so research material can be collected during initial project planning
 - Completed projects lock every field except Insights and Next steps; "Mark completed"
   now confirms first, and a "Move back to active" button on completed projects lifts the
   lock again
