@@ -1,6 +1,6 @@
 # Project dashboard
 
-Simple version of the dashboard, matching `Project_Dashboard_Design.md`.
+Simple version of the dashboard, matching `docs/Project_Dashboard_Design.md`.
 
 ## Run it
 

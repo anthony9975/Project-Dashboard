@@ -1,7 +1,7 @@
 # Codebase
 
 A map of the actual files, for someone opening this project for the first time. For *why*
-things are built this way, see `context.md` (fast version) or `Project_Dashboard_Design.md`
+things are built this way, see `docs/context.md` (fast version) or `docs/Project_Dashboard_Design.md`
 (full reasoning). This doc is just: what's here, and what talks to what.
 
 The short version: this is a Next.js app with **four layers**, each only aware of the one
@@ -49,12 +49,13 @@ project-dashboard/
 │       └── [id].js                # project detail page — the most complex page
 ├── styles/
 │   └── globals.css                # palette, type, and every component's CSS
+├── docs/
+│   ├── Codebase.md                    # this file
+│   ├── Project_Dashboard_Design.md    # full design reasoning
+│   └── context.md                     # condensed decision log
 ├── next.config.js
 ├── package.json
-├── README.md                      # how to run it locally
-├── Project_Dashboard_Design.md    # full design reasoning
-├── context.md                     # condensed decision log
-└── Codebase.md                    # this file
+└── README.md                      # how to run it locally
 ```
 
 ## Layer by layer
@@ -69,7 +70,7 @@ holds one uploaded interactive HTML diagram per project, named by id (`data/diag
 
 There's no schema enforcement here beyond what `projectRepository.js` writes. If you open
 one of these files, you're looking at the actual shape of a `Project` — see the schema
-sketch in `Project_Dashboard_Design.md` if a field's purpose isn't obvious from its name.
+sketch in `docs/Project_Dashboard_Design.md` if a field's purpose isn't obvious from its name.
 
 ### `lib/projectRepository.js` — data access
 
@@ -82,7 +83,7 @@ equivalents). Exports:
 - `saveDiagramFile(id, buffer)`, `getDiagramFile(id)`, `deleteDiagramFile(id)` — the
   project-JSON functions above only ever touch `data/projects/`; these three are the
   matching read/write/delete trio for `data/diagrams/`, added when Technical specifications
-  became an uploaded file instead of table data (see context.md)
+  became an uploaded file instead of table data (see docs/context.md)
 
 It also runs `normalizeProject()` on every read, which transparently upgrades old data
 shapes (e.g. a roadmap step that predates the nested-to-do feature or the `completedDate`
@@ -116,7 +117,7 @@ own renderer (e.g. the roadmap renderer walks steps and their nested to-dos, the
 renderer emits a Markdown table with a computed total row, the diagram renderer prefers
 `diagramDescription` — a hand-written explanation, edited via a hidden toggle on
 `DiagramSlot` — falling back to a note that a diagram is attached if no description was
-written; see context.md under "Technical diagram"). Deliberately kept separate from
+written; see docs/context.md under "Technical diagram"). Deliberately kept separate from
 `ExportModal.js` so this generation logic could be reused by a future export entry point
 (e.g. a dashboard-level bulk export) without duplicating it.
 
@@ -177,7 +178,7 @@ a `text/html` content type rather than a JSON body.
   together — rather than per-cell, since four separate pencils per row would be noisy.
 - **`DiagramSlot`** replaced `TechnicalSpecsTable` — Technical specifications is now a
   single uploaded, self-contained interactive HTML diagram rather than a table (see
-  "Technical diagram" in `Project_Dashboard_Design.md`). The component never parses the
+  "Technical diagram" in `docs/Project_Dashboard_Design.md`). The component never parses the
   uploaded file itself; it renders an `<iframe src="/api/projects/{id}/diagram">` so the
   diagram's own scripts/styles stay isolated from the rest of the app. Upload/replace both
   go through the same `POST` to that route as a `multipart/form-data` request; remove is a

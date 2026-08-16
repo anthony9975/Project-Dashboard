@@ -1,7 +1,7 @@
 # Context
 
 Condensed key-decisions log for the project dashboard. For full reasoning, data shapes, and
-the palette/type reference, see `Project_Dashboard_Design.md` — this file is the fast-scan
+the palette/type reference, see `docs/Project_Dashboard_Design.md` — this file is the fast-scan
 version of the same decisions, not a replacement.
 
 ## What this is
