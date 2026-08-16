@@ -190,9 +190,9 @@ distinct attributes rather than being one line of prose:
   name/link/price/notes all into inputs together, and confirm/cancel saves or discards all
   four as one unit. Four separate pencils per row would be noisy for what's usually a quick
   edit
-- New components are added through a persistent 4-input row pinned below the table (name,
-  link, price, notes, then an "add" button) — the same "always-visible input, press Enter or
-  click add" shape as adding a roadmap step, just with more fields
+- New components are added through an expandable row revealed by a subtle "+ Add component"
+  button below the table (name, link, price, notes, then "✓ add" and "cancel" buttons), keeping empty
+  tables clean and uncluttered
 
 ### Export to Markdown (UI pattern)
  

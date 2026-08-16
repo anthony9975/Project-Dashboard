@@ -17,6 +17,7 @@ export default function FeaturesList({ value, onChange, locked = false }) {
   const [items, setItems] = useState(value || []);
   const draggedIndex = useRef(null);
   const [dragging, setDragging] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
 
@@ -37,6 +38,7 @@ export default function FeaturesList({ value, onChange, locked = false }) {
     ]);
     setNewName('');
     setNewDesc('');
+    setIsAdding(false);
   }
 
   function editFeature(id, name, description) {
@@ -143,25 +145,62 @@ export default function FeaturesList({ value, onChange, locked = false }) {
       ))}
 
       {!locked && (
-        <div className="feature-add-inputs">
-          <input
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="Feature name…"
-            style={{ flex: 1 }}
-            onKeyDown={(e) => e.key === 'Enter' && addFeature()}
-          />
-          <input
-            value={newDesc}
-            onChange={(e) => setNewDesc(e.target.value)}
-            placeholder="Description (optional)…"
-            style={{ flex: 1.5 }}
-            onKeyDown={(e) => e.key === 'Enter' && addFeature()}
-          />
-          <button type="button" className="btn" onClick={addFeature}>
-            add
+        isAdding ? (
+          <div className="feature-add-inputs">
+            <input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Feature name…"
+              style={{ flex: 1 }}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') addFeature();
+                if (e.key === 'Escape') {
+                  setIsAdding(false);
+                  setNewName('');
+                  setNewDesc('');
+                }
+              }}
+            />
+            <input
+              value={newDesc}
+              onChange={(e) => setNewDesc(e.target.value)}
+              placeholder="Description (optional)…"
+              style={{ flex: 1.5 }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') addFeature();
+                if (e.key === 'Escape') {
+                  setIsAdding(false);
+                  setNewName('');
+                  setNewDesc('');
+                }
+              }}
+            />
+            <button type="button" className="field-confirm-btn" onClick={addFeature}>
+              ✓ add
+            </button>
+            <button
+              type="button"
+              className="field-cancel-btn"
+              onClick={() => {
+                setIsAdding(false);
+                setNewName('');
+                setNewDesc('');
+              }}
+            >
+              cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="add-item-btn"
+            onClick={() => setIsAdding(true)}
+            style={{ marginTop: items.length > 0 ? 4 : 0 }}
+          >
+            + Add feature
           </button>
-        </div>
+        )
       )}
     </div>
   );
@@ -186,6 +225,7 @@ function FeatureRow({
   const [draftName, setDraftName] = useState(feature.name || feature.text || '');
   const [draftDesc, setDraftDesc] = useState(feature.description || '');
 
+  const [isAddingSub, setIsAddingSub] = useState(false);
   const [newSubName, setNewSubName] = useState('');
   const [newSubDesc, setNewSubDesc] = useState('');
 
@@ -330,45 +370,81 @@ function FeatureRow({
           ))}
 
           {!locked && (
-            <div className="subfeature-add-inputs">
-              <input
-                value={newSubName}
-                onChange={(e) => setNewSubName(e.target.value)}
-                placeholder="Sub-feature name…"
-                style={{ flex: 1 }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+            isAddingSub ? (
+              <div className="subfeature-add-inputs">
+                <input
+                  value={newSubName}
+                  onChange={(e) => setNewSubName(e.target.value)}
+                  placeholder="Sub-feature name…"
+                  style={{ flex: 1 }}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      onAddSubFeature(newSubName, newSubDesc);
+                      setNewSubName('');
+                      setNewSubDesc('');
+                      setIsAddingSub(false);
+                    }
+                    if (e.key === 'Escape') {
+                      setIsAddingSub(false);
+                      setNewSubName('');
+                      setNewSubDesc('');
+                    }
+                  }}
+                />
+                <input
+                  value={newSubDesc}
+                  onChange={(e) => setNewSubDesc(e.target.value)}
+                  placeholder="Description (optional)…"
+                  style={{ flex: 1.5 }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      onAddSubFeature(newSubName, newSubDesc);
+                      setNewSubName('');
+                      setNewSubDesc('');
+                      setIsAddingSub(false);
+                    }
+                    if (e.key === 'Escape') {
+                      setIsAddingSub(false);
+                      setNewSubName('');
+                      setNewSubDesc('');
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className="field-confirm-btn"
+                  onClick={() => {
                     onAddSubFeature(newSubName, newSubDesc);
                     setNewSubName('');
                     setNewSubDesc('');
-                  }
-                }}
-              />
-              <input
-                value={newSubDesc}
-                onChange={(e) => setNewSubDesc(e.target.value)}
-                placeholder="Description (optional)…"
-                style={{ flex: 1.5 }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    onAddSubFeature(newSubName, newSubDesc);
+                    setIsAddingSub(false);
+                  }}
+                >
+                  ✓ add
+                </button>
+                <button
+                  type="button"
+                  className="field-cancel-btn"
+                  onClick={() => {
+                    setIsAddingSub(false);
                     setNewSubName('');
                     setNewSubDesc('');
-                  }
-                }}
-              />
+                  }}
+                >
+                  cancel
+                </button>
+              </div>
+            ) : (
               <button
                 type="button"
-                className="btn"
-                onClick={() => {
-                  onAddSubFeature(newSubName, newSubDesc);
-                  setNewSubName('');
-                  setNewSubDesc('');
-                }}
+                className="add-item-btn"
+                onClick={() => setIsAddingSub(true)}
+                style={{ marginTop: localSubs.length > 0 ? 4 : 0 }}
               >
-                add
+                + Add sub-feature
               </button>
-            </div>
+            )
           )}
         </div>
       )}

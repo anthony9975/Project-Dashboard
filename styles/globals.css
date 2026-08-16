@@ -255,6 +255,27 @@ a:hover {
   cursor: default;
 }
 
+.add-item-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 0.5px dashed var(--line);
+  background: transparent;
+  color: var(--slate);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+.add-item-btn:hover {
+  border-color: var(--circuit-blue);
+  color: var(--circuit-blue);
+  background: #fff;
+}
+
 input,
 textarea {
   font-family: 'IBM Plex Sans', sans-serif;

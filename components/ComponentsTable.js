@@ -33,6 +33,7 @@ function draftFromItem(item) {
 export default function ComponentsTable({ value, onChange, locked = false }) {
   const items = value || [];
   const [editingId, setEditingId] = useState(null);
+  const [isAdding, setIsAdding] = useState(false);
   const [draft, setDraft] = useState(blankDraft());
   const [newDraft, setNewDraft] = useState(blankDraft());
 
@@ -77,6 +78,7 @@ export default function ComponentsTable({ value, onChange, locked = false }) {
       },
     ]);
     setNewDraft(blankDraft());
+    setIsAdding(false);
   }
 
   const pricedItems = items.filter((c) => typeof c.price === 'number' && !Number.isNaN(c.price));
@@ -177,42 +179,88 @@ export default function ComponentsTable({ value, onChange, locked = false }) {
       )}
 
       {!locked && (
-        <div className="ct-add-row">
-          <input
-            className="ct-add-name"
-            value={newDraft.name}
-            onChange={(e) => setNewDraft({ ...newDraft, name: e.target.value })}
-            placeholder="Component name"
-            onKeyDown={(e) => e.key === 'Enter' && addItem()}
-          />
-          <input
-            className="ct-add-link"
-            value={newDraft.link}
-            onChange={(e) => setNewDraft({ ...newDraft, link: e.target.value })}
-            placeholder="Link (optional)"
-            onKeyDown={(e) => e.key === 'Enter' && addItem()}
-          />
-          <input
-            className="ct-add-price"
-            type="number"
-            step="0.01"
-            min="0"
-            value={newDraft.price}
-            onChange={(e) => setNewDraft({ ...newDraft, price: e.target.value })}
-            placeholder="Price"
-            onKeyDown={(e) => e.key === 'Enter' && addItem()}
-          />
-          <input
-            className="ct-add-notes"
-            value={newDraft.notes}
-            onChange={(e) => setNewDraft({ ...newDraft, notes: e.target.value })}
-            placeholder="Notes (optional)"
-            onKeyDown={(e) => e.key === 'Enter' && addItem()}
-          />
-          <button type="button" className="btn" onClick={addItem}>
-            add
+        isAdding ? (
+          <div className="ct-add-row">
+            <input
+              className="ct-add-name"
+              value={newDraft.name}
+              onChange={(e) => setNewDraft({ ...newDraft, name: e.target.value })}
+              placeholder="Component name"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') addItem();
+                if (e.key === 'Escape') {
+                  setIsAdding(false);
+                  setNewDraft(blankDraft());
+                }
+              }}
+            />
+            <input
+              className="ct-add-link"
+              value={newDraft.link}
+              onChange={(e) => setNewDraft({ ...newDraft, link: e.target.value })}
+              placeholder="Link (optional)"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') addItem();
+                if (e.key === 'Escape') {
+                  setIsAdding(false);
+                  setNewDraft(blankDraft());
+                }
+              }}
+            />
+            <input
+              className="ct-add-price"
+              type="number"
+              step="0.01"
+              min="0"
+              value={newDraft.price}
+              onChange={(e) => setNewDraft({ ...newDraft, price: e.target.value })}
+              placeholder="Price"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') addItem();
+                if (e.key === 'Escape') {
+                  setIsAdding(false);
+                  setNewDraft(blankDraft());
+                }
+              }}
+            />
+            <input
+              className="ct-add-notes"
+              value={newDraft.notes}
+              onChange={(e) => setNewDraft({ ...newDraft, notes: e.target.value })}
+              placeholder="Notes (optional)"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') addItem();
+                if (e.key === 'Escape') {
+                  setIsAdding(false);
+                  setNewDraft(blankDraft());
+                }
+              }}
+            />
+            <button type="button" className="field-confirm-btn" onClick={addItem}>
+              ✓ add
+            </button>
+            <button
+              type="button"
+              className="field-cancel-btn"
+              onClick={() => {
+                setIsAdding(false);
+                setNewDraft(blankDraft());
+              }}
+            >
+              cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="add-item-btn"
+            onClick={() => setIsAdding(true)}
+            style={{ marginTop: items.length > 0 ? 10 : 0 }}
+          >
+            + Add component
           </button>
-        </div>
+        )
       )}
     </div>
   );

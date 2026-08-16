@@ -191,7 +191,7 @@ a `text/html` content type rather than a JSON body.
 - **`ResearchList`** renders `research` as structured entries (`{ id, name, link, description }`) sitting unboxed
   directly on the page layout. Displays Article Name on top (clickable link hiding the raw URL when a link is provided),
   with Description placed directly below it and indented to the right. Supports inline editing, deletion (`×`), and
-  persistent add inputs.
+  expandable add inputs.
 - **`RoadmapTimeline`** is the most involved component: drag-to-reorder steps, a nested
   `StepRow` per step containing its own drag-to-reorder `TodoRow` list, and the two
   auto-behaviors (auto-expand on in-progress, auto-complete on all-to-dos-done) described

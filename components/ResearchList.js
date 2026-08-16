@@ -13,6 +13,7 @@ function makeId() {
 // - Respects `locked` prop: hides all mutation controls on completed projects.
 export default function ResearchList({ value, onChange, locked = false }) {
   const [items, setItems] = useState(value || []);
+  const [isAdding, setIsAdding] = useState(false);
   const [newName, setNewName] = useState('');
   const [newLink, setNewLink] = useState('');
   const [newDesc, setNewDesc] = useState('');
@@ -35,6 +36,7 @@ export default function ResearchList({ value, onChange, locked = false }) {
     setNewName('');
     setNewLink('');
     setNewDesc('');
+    setIsAdding(false);
   }
 
   function editItem(id, updates) {
@@ -58,36 +60,84 @@ export default function ResearchList({ value, onChange, locked = false }) {
       ))}
 
       {!locked && (
-        <div className="research-add-inputs">
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1 }}>
-            <input
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="Article name…"
-              style={{ flex: 1, minWidth: 140 }}
-              onKeyDown={(e) => e.key === 'Enter' && addItem()}
-            />
-            <input
-              value={newLink}
-              onChange={(e) => setNewLink(e.target.value)}
-              placeholder="Article link (URL)…"
-              style={{ flex: 1.2, minWidth: 150 }}
-              onKeyDown={(e) => e.key === 'Enter' && addItem()}
-            />
+        isAdding ? (
+          <div className="research-add-inputs">
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1 }}>
+              <input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Article name…"
+                style={{ flex: 1, minWidth: 140 }}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') addItem();
+                  if (e.key === 'Escape') {
+                    setIsAdding(false);
+                    setNewName('');
+                    setNewLink('');
+                    setNewDesc('');
+                  }
+                }}
+              />
+              <input
+                value={newLink}
+                onChange={(e) => setNewLink(e.target.value)}
+                placeholder="Article link (URL)…"
+                style={{ flex: 1.2, minWidth: 150 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') addItem();
+                  if (e.key === 'Escape') {
+                    setIsAdding(false);
+                    setNewName('');
+                    setNewLink('');
+                    setNewDesc('');
+                  }
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 6, width: '100%', marginTop: 4 }}>
+              <input
+                value={newDesc}
+                onChange={(e) => setNewDesc(e.target.value)}
+                placeholder="Description (optional)…"
+                style={{ flex: 1 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') addItem();
+                  if (e.key === 'Escape') {
+                    setIsAdding(false);
+                    setNewName('');
+                    setNewLink('');
+                    setNewDesc('');
+                  }
+                }}
+              />
+              <button type="button" className="field-confirm-btn" onClick={addItem}>
+                ✓ add
+              </button>
+              <button
+                type="button"
+                className="field-cancel-btn"
+                onClick={() => {
+                  setIsAdding(false);
+                  setNewName('');
+                  setNewLink('');
+                  setNewDesc('');
+                }}
+              >
+                cancel
+              </button>
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: 6, width: '100%', marginTop: 4 }}>
-            <input
-              value={newDesc}
-              onChange={(e) => setNewDesc(e.target.value)}
-              placeholder="Description (optional)…"
-              style={{ flex: 1 }}
-              onKeyDown={(e) => e.key === 'Enter' && addItem()}
-            />
-            <button type="button" className="btn" onClick={addItem}>
-              add
-            </button>
-          </div>
-        </div>
+        ) : (
+          <button
+            type="button"
+            className="add-item-btn"
+            onClick={() => setIsAdding(true)}
+            style={{ marginTop: items.length > 0 ? 4 : 0 }}
+          >
+            + Add research
+          </button>
+        )
       )}
     </div>
   );

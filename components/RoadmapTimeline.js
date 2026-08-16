@@ -78,6 +78,7 @@ export default function RoadmapTimeline({ value, onChange, locked = false }) {
     });
     return initial;
   });
+  const [isAddingStep, setIsAddingStep] = useState(false);
   const [newStepText, setNewStepText] = useState('');
 
   useEffect(() => {
@@ -118,6 +119,7 @@ export default function RoadmapTimeline({ value, onChange, locked = false }) {
       { id: makeId(), text: newStepText.trim(), status: 'not_started', todos: [], completedDate: '' },
     ]);
     setNewStepText('');
+    setIsAddingStep(false);
   }
 
   function toggleExpanded(id) {
@@ -226,17 +228,45 @@ export default function RoadmapTimeline({ value, onChange, locked = false }) {
       ))}
 
       {!locked && (
-        <div style={{ display: 'flex', gap: 6, marginTop: items.length > 0 ? 12 : 0 }}>
-          <input
-            value={newStepText}
-            onChange={(e) => setNewStepText(e.target.value)}
-            placeholder="Add a step…"
-            onKeyDown={(e) => e.key === 'Enter' && addStep()}
-          />
-          <button type="button" className="btn" onClick={addStep}>
-            add
+        isAddingStep ? (
+          <div style={{ display: 'flex', gap: 6, marginTop: items.length > 0 ? 12 : 0 }}>
+            <input
+              value={newStepText}
+              onChange={(e) => setNewStepText(e.target.value)}
+              placeholder="Step text…"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') addStep();
+                if (e.key === 'Escape') {
+                  setIsAddingStep(false);
+                  setNewStepText('');
+                }
+              }}
+            />
+            <button type="button" className="field-confirm-btn" onClick={addStep}>
+              ✓ add
+            </button>
+            <button
+              type="button"
+              className="field-cancel-btn"
+              onClick={() => {
+                setIsAddingStep(false);
+                setNewStepText('');
+              }}
+            >
+              cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="add-item-btn"
+            onClick={() => setIsAddingStep(true)}
+            style={{ marginTop: items.length > 0 ? 12 : 0 }}
+          >
+            + Add step
           </button>
-        </div>
+        )
       )}
     </div>
   );
@@ -264,6 +294,7 @@ function StepRow({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(step.text);
   const [dateDraft, setDateDraft] = useState(step.completedDate || '');
+  const [isAddingTodo, setIsAddingTodo] = useState(false);
   const [newTodoText, setNewTodoText] = useState('');
 
   function startEdit() {
@@ -411,29 +442,57 @@ function StepRow({
               />
             ))}
             {!locked && (
-              <div style={{ display: 'flex', gap: 6, marginTop: localTodos.length > 0 ? 8 : 0 }}>
-                <input
-                  value={newTodoText}
-                  onChange={(e) => setNewTodoText(e.target.value)}
-                  placeholder="Add a to-do…"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+              isAddingTodo ? (
+                <div style={{ display: 'flex', gap: 6, marginTop: localTodos.length > 0 ? 8 : 0 }}>
+                  <input
+                    value={newTodoText}
+                    onChange={(e) => setNewTodoText(e.target.value)}
+                    placeholder="To-do text…"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        onAddTodo(newTodoText);
+                        setNewTodoText('');
+                        setIsAddingTodo(false);
+                      }
+                      if (e.key === 'Escape') {
+                        setIsAddingTodo(false);
+                        setNewTodoText('');
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="field-confirm-btn"
+                    onClick={() => {
                       onAddTodo(newTodoText);
                       setNewTodoText('');
-                    }
-                  }}
-                />
+                      setIsAddingTodo(false);
+                    }}
+                  >
+                    ✓ add
+                  </button>
+                  <button
+                    type="button"
+                    className="field-cancel-btn"
+                    onClick={() => {
+                      setIsAddingTodo(false);
+                      setNewTodoText('');
+                    }}
+                  >
+                    cancel
+                  </button>
+                </div>
+              ) : (
                 <button
                   type="button"
-                  className="btn"
-                  onClick={() => {
-                    onAddTodo(newTodoText);
-                    setNewTodoText('');
-                  }}
+                  className="add-item-btn"
+                  onClick={() => setIsAddingTodo(true)}
+                  style={{ marginTop: localTodos.length > 0 ? 8 : 0 }}
                 >
-                  add
+                  + Add to-do
                 </button>
-              </div>
+              )
             )}
           </div>
         )}

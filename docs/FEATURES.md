@@ -69,7 +69,8 @@ Field availability expands additively as a project moves through its lifecycle (
 ### Features List (`FeaturesList.js`)
 - **Nested Feature Hierarchy**: Bulleted list of feature items where each feature can contain nested sub-features.
 - **Inline Display**: Features display as `Name - Description` (and `Sub-feature Name - Description`).
-- **Collapsible Sub-Features**: Sub-feature containers collapse/expand to hide sub-items and add inputs when collapsed.
+- **Collapsible Sub-Features**: Sub-feature containers collapse/expand to hide sub-items when collapsed.
+- **Expandable Addition**: Persistent blank textboxes are hidden behind subtle `+ Add feature` and `+ Add sub-feature` buttons that expand input fields on demand.
 - **Drag-to-Reorder**: Native drag handles on features and sub-features with `e.stopPropagation()` event bubbling protection.
 - **Inline Editing & Deletion**: Pencil icon opens inline inputs; `×` removes an entry or sub-entry.
 
@@ -78,11 +79,13 @@ Field availability expands additively as a project moves through its lifecycle (
 - **Unboxed Layout**: Renders directly on page layout without card container borders.
 - **Clean Article Links**: Article Name acts as a clickable link hiding raw URLs when a link is supplied.
 - **Indented Descriptions**: Description sits directly below the article title, indented to the right.
+- **Expandable Addition**: Replaces persistent blank textboxes with a subtle `+ Add research` button.
 - **Early Stage Access**: Available from `planned` stage onward so research materials can be collected during initial planning.
 
 ### Interactive Roadmap & Auto-Timeline (`RoadmapTimeline.js`)
 - **Vertical Timeline**: 3-state step status (`not_started`, `in_progress`, `done`) with progress bar reflecting step completion.
 - **Nested Per-Step To-Dos**: Each step contains its own independently drag-reorderable mini to-do list with 3-state status.
+- **Expandable Addition**: Replaces persistent step and to-do textboxes with subtle `+ Add step` and `+ Add to-do` buttons.
 - **Automated Step Behaviors**:
   - Setting a step to `in_progress` auto-expands its to-do list.
   - Completing all nested to-dos under a step auto-completes the parent step (one-directional; manual step completion is preserved).
@@ -92,7 +95,7 @@ Field availability expands additively as a project moves through its lifecycle (
 - **Structured Table Layout**: Columns for Component Name (clickable link when URL present), Price (strictly numeric or blank), Notes, and Actions.
 - **Running Total Calculation**: Automatically sums numeric prices into a total row at the bottom of the table.
 - **Whole-Row Editing**: Pencil opens all inputs for a row simultaneously to streamline editing.
-- **Pinned Addition Row**: Pinned input row at bottom for quick entry.
+- **Expandable Addition Row**: Replaces persistent blank input row with a subtle `+ Add component` button.
 
 ### Technical Specifications Diagram (`DiagramSlot.js`)
 - **Self-Contained HTML Diagram Upload**: Supports interactive HTML diagrams (draw.io exports recommended) stored as `data/diagrams/{id}.html`.

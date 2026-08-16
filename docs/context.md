@@ -166,6 +166,10 @@ Single user, runs on one machine, no auth.
   decisions and layer boundary breakdowns out of `CONVENTIONS.md` into `Codebase.md`, leaving
   `CONVENTIONS.md` to reference `Codebase.md` for architecture while focusing on file naming,
   exports, comments, and CSS conventions.
+- **List add inputs replaced persistent blank textboxes with expandable `+ Add [item]` buttons.** Across
+  Features, Roadmap (steps & to-dos), Research, and Components table, persistent blank input textboxes were
+  replaced with subtle `+ Add [item]` buttons (`.add-item-btn`). Clicking the button reveals the input fields
+  with `autoFocus`, keeping empty or newly started projects clean and uncluttered.
 
 ## Visual identity, in one line
 
