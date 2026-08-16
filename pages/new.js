@@ -1,3 +1,7 @@
+// UI Layer — Frictionless Idea Capture Page (/new)
+// Captures raw project ideas with minimal friction (title + one-line note only).
+// Posts to /api/projects to create a new project record in the 'idea' status stage.
+
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';

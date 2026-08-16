@@ -1,3 +1,8 @@
+// UI Layer — Project Detail Page (/projects/[id])
+// Canonical view for reading, editing, and managing a project's lifecycle.
+// Field visibility is driven by lib/projectFieldConfig.js (fieldsFor). Per-field saves PATCH
+// /api/projects/[id] independently. Loads initial server data via getServerSideProps.
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { getProject, getAllTraits } from '../../lib/projectRepository';

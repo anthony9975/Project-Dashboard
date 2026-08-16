@@ -1,4 +1,5 @@
-// The small "+" registration marks used on cards, echoing PCB fiducials / drafting marks.
+// UI Layer — Card Corner Fiducials Component (Fiducials.js)
+// Renders small "+" registration marks on card corners, echoing PCB fiducials and drafting blueprint aesthetic.
 export default function Fiducials() {
   return (
     <>

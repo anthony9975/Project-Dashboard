@@ -1,3 +1,7 @@
+// API Route Layer — Single Project Handler (/api/projects/[id])
+// Handles GET (fetch single project) and PATCH (update project fields).
+// Thin HTTP route delegating data access and persistence to lib/projectRepository.js.
+
 import { getProject, saveProject } from '../../../lib/projectRepository';
 
 export default function handler(req, res) {

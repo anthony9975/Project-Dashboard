@@ -1,3 +1,7 @@
+// API Route Layer — Projects Collection Handler (/api/projects)
+// Handles GET (list all projects) and POST (create a new project).
+// Thin HTTP route delegating data operations to lib/projectRepository.js.
+
 import { getAllProjects, createProject } from '../../../lib/projectRepository';
 
 export default function handler(req, res) {

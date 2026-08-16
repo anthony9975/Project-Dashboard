@@ -163,13 +163,15 @@ export default function RoadmapTimeline({ value, onChange, locked = false }) {
     commit(items.map((s) => (s.id === stepId ? { ...s, todos: newTodos } : s)));
   }
 
-  function handleDragStart(index) {
+  function handleDragStart(e, index) {
+    e.stopPropagation();
     draggedIndex.current = index;
     setDragging(true);
   }
 
   function handleDragOver(e, index) {
     e.preventDefault();
+    e.stopPropagation();
     const from = draggedIndex.current;
     if (from === null || from === index) return;
     const updated = [...items];
@@ -179,13 +181,15 @@ export default function RoadmapTimeline({ value, onChange, locked = false }) {
     setItems(updated);
   }
 
-  function handleDrop() {
+  function handleDrop(e) {
+    e.stopPropagation();
     setDragging(false);
     draggedIndex.current = null;
     onChange(items);
   }
 
-  function handleDragEnd() {
+  function handleDragEnd(e) {
+    e.stopPropagation();
     setDragging(false);
     draggedIndex.current = null;
   }
@@ -206,10 +210,10 @@ export default function RoadmapTimeline({ value, onChange, locked = false }) {
           expanded={!!expanded[step.id]}
           locked={locked}
           onToggleExpanded={() => toggleExpanded(step.id)}
-          onDragStart={() => handleDragStart(i)}
+          onDragStart={(e) => handleDragStart(e, i)}
           onDragOver={(e) => handleDragOver(e, i)}
-          onDrop={handleDrop}
-          onDragEnd={handleDragEnd}
+          onDrop={(e) => handleDrop(e)}
+          onDragEnd={(e) => handleDragEnd(e)}
           onCycleStatus={() => cycleStepStatus(step.id)}
           onEditStep={(updates) => editStep(step.id, updates)}
           onRemove={() => removeStep(step.id)}

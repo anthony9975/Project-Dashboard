@@ -1,3 +1,7 @@
+// UI Layer — Main Dashboard Page
+// Displays all projects in a card grid filtered by status stage tabs and dynamic traits.
+// Uses getServerSideProps to load initial data directly from lib/projectRepository.js on the server.
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { getAllProjects } from '../lib/projectRepository';

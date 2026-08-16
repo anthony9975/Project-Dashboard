@@ -91,13 +91,15 @@ export default function FeaturesList({ value, onChange, locked = false }) {
     commit(items.map((f) => (f.id === featureId ? { ...f, subFeatures: newSubFeatures } : f)));
   }
 
-  function handleDragStart(index) {
+  function handleDragStart(e, index) {
+    e.stopPropagation();
     draggedIndex.current = index;
     setDragging(true);
   }
 
   function handleDragOver(e, index) {
     e.preventDefault();
+    e.stopPropagation();
     const from = draggedIndex.current;
     if (from === null || from === index) return;
     const updated = [...items];
@@ -107,13 +109,15 @@ export default function FeaturesList({ value, onChange, locked = false }) {
     setItems(updated);
   }
 
-  function handleDrop() {
+  function handleDrop(e) {
+    e.stopPropagation();
     setDragging(false);
     draggedIndex.current = null;
     onChange(items);
   }
 
-  function handleDragEnd() {
+  function handleDragEnd(e) {
+    e.stopPropagation();
     setDragging(false);
     draggedIndex.current = null;
   }
@@ -125,10 +129,10 @@ export default function FeaturesList({ value, onChange, locked = false }) {
           key={feature.id}
           feature={feature}
           locked={locked}
-          onDragStart={() => handleDragStart(i)}
+          onDragStart={(e) => handleDragStart(e, i)}
           onDragOver={(e) => handleDragOver(e, i)}
-          onDrop={handleDrop}
-          onDragEnd={handleDragEnd}
+          onDrop={(e) => handleDrop(e)}
+          onDragEnd={(e) => handleDragEnd(e)}
           onEdit={(name, desc) => editFeature(feature.id, name, desc)}
           onRemove={() => removeFeature(feature.id)}
           onAddSubFeature={(name, desc) => addSubFeature(feature.id, name, desc)}

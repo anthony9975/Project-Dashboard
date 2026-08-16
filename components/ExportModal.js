@@ -1,3 +1,7 @@
+// UI Layer — Markdown Export Modal Component (ExportModal.js)
+// Renders a checklist overlay allowing users to select which visible project fields to include in export.
+// Delegates Markdown document generation and browser download to lib/exportProject.js.
+
 import { useState } from 'react';
 import { downloadProjectMarkdown } from '../lib/exportProject';
 

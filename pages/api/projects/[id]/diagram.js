@@ -1,3 +1,7 @@
+// API Route Layer — Project Diagram Handler (/api/projects/[id]/diagram)
+// Handles GET (serve raw HTML diagram), POST (upload/replace diagram via busboy), and DELETE (remove diagram).
+// Delegates filesystem read/write/delete operations for data/diagrams/{id}.html to lib/projectRepository.js.
+
 import {
   getProject,
   saveProject,
