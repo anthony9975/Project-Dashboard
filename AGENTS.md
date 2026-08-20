@@ -82,6 +82,7 @@ that technically avoids the letter of the rule while breaking its intent.
 - **Make zero assumptions.** If a request is ambiguous, or could be implemented more than
   one reasonable way, ask before writing code. This is a low-volume, high-context personal
   project — a wrong guess costs more than a clarifying question.
+- **GitHub & Privacy Readiness:** All git-tracked files (code, documentation, configuration, etc.) in this repository must be maintained so they can be published publicly on GitHub with zero personally identifiable information (PII) — such as full local file paths, personal usernames, real names, email addresses, or private system paths. Local gitignored user data (`data/`) is not published to GitHub and may contain personal project details.
 - **Check `docs/context.md` before assuming something is new.** Several past decisions read like
   they'd need re-deciding (e.g. "should to-dos have their own top-level list?") but are
   already settled — re-read before proposing something that contradicts a logged decision.
