@@ -1,3 +1,13 @@
 node_modules
 .next
-data
+data/*
+!data/index.json
+!data/projects/
+data/projects/*
+!data/projects/1.json
+!data/projects/2.json
+!data/projects/3.json
+!data/projects/4.json
+!data/projects/5.json
+!data/diagrams/
+data/diagrams/*

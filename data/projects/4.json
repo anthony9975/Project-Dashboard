@@ -1,0 +1,74 @@
+{
+  "id": "4",
+  "title": "Synth kit",
+  "note": "Small DIY analog synth build.",
+  "status": "completed",
+  "category": "hardware",
+  "description": "A beginner analog synth kit — VCO, VCF, simple envelope, built from a kit PCB.",
+  "vision": "Learn basic analog synth building blocks by building one end to end.",
+  "roadmap": [
+    {
+      "id": "legacy-0",
+      "text": "Order kit",
+      "status": "done",
+      "todos": [
+        {
+          "id": "1784442209508-ddr3k",
+          "text": "Research best kit",
+          "status": "done"
+        }
+      ],
+      "completedDate": "2026-07-18"
+    },
+    {
+      "id": "legacy-1",
+      "text": "Solder",
+      "status": "in_progress",
+      "todos": [
+        {
+          "id": "1784442223173-11zls",
+          "text": "Buy Soldering Iron",
+          "status": "done"
+        },
+        {
+          "id": "1784442227553-ned9j",
+          "text": "Buy Solder",
+          "status": "in_progress"
+        }
+      ],
+      "completedDate": ""
+    },
+    {
+      "id": "legacy-2",
+      "text": "Calibrate",
+      "status": "not_started",
+      "todos": [],
+      "completedDate": ""
+    },
+    {
+      "id": "legacy-3",
+      "text": "Build a simple case",
+      "status": "not_started",
+      "todos": [],
+      "completedDate": ""
+    }
+  ],
+  "components": [],
+  "location": "",
+  "todos": [],
+  "research": [],
+  "archivedReason": "",
+  "blockers": "",
+  "timeline": [
+    "Week 1: kit arrived, sorted parts",
+    "Week 2-3: soldering evenings",
+    "Week 4: calibration + debugging a noisy VCO",
+    "Week 6: finished, in a 3D-printed case"
+  ],
+  "insights": "The VCO noise turned out to be a bad ground connection, not a bad component — worth checking grounding before swapping parts next time.",
+  "nextSteps": "Could add a second oscillator for basic FM later.",
+  "createdAt": "2026-04-01T00:00:00.000Z",
+  "updatedAt": "2026-07-19T06:23:52.189Z",
+  "technicalSpecs": [],
+  "traits": []
+}
